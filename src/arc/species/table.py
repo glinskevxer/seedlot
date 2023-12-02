@@ -1,0 +1,352 @@
+"""The species the station is accredited to test.
+
+Twenty six entries, which covers everything that has come through the door in
+the last five years. Anything else is refused at booking in rather than tested
+against a guess, because a working sample size taken from the wrong row is not
+a small error: it invalidates the purity analysis and everything computed from
+it.
+
+The numbers are transcribed from the handbook tables. They are deliberately
+written out rather than derived from the seed class, because the handbook does
+not derive them either and a species that looks like it should follow its class
+often does not.
+"""
+
+from __future__ import annotations
+
+from decimal import Decimal
+
+from arc.species.model import (
+    GerminationMethod,
+    Grinding,
+    MoistureMethod,
+    OvenMethod,
+    SeedClass,
+    Species,
+    Substrate,
+)
+
+__all__ = ["SPECIES_TABLE"]
+
+
+def _g(value: str) -> Decimal:
+    return Decimal(value)
+
+
+def _cereal_moisture() -> MoistureMethod:
+    return MoistureMethod(oven=OvenMethod.HIGH_CONSTANT_2H, grinding=Grinding.FINE)
+
+
+def _oily_moisture() -> MoistureMethod:
+    return MoistureMethod(oven=OvenMethod.LOW_CONSTANT, grinding=Grinding.COARSE)
+
+
+def _whole_seed_moisture() -> MoistureMethod:
+    return MoistureMethod(oven=OvenMethod.HIGH_CONSTANT_1H, grinding=Grinding.NONE)
+
+
+SPECIES_TABLE: tuple[Species, ...] = (
+    Species(
+        botanical_name="Triticum aestivum",
+        common_name="wheat",
+        seed_class=SeedClass.CEREAL,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("120"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.BETWEEN_PAPER, "20", 4, 8),
+        moisture=_cereal_moisture(),
+        aliases=("bread wheat", "common wheat"),
+    ),
+    Species(
+        botanical_name="Hordeum vulgare",
+        common_name="barley",
+        seed_class=SeedClass.CEREAL,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("120"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.BETWEEN_PAPER, "20", 4, 7),
+        moisture=_cereal_moisture(),
+    ),
+    Species(
+        botanical_name="Avena sativa",
+        common_name="oat",
+        seed_class=SeedClass.CEREAL,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("120"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.BETWEEN_PAPER, "20", 5, 10, prechill_days=5),
+        moisture=_cereal_moisture(),
+    ),
+    Species(
+        botanical_name="Secale cereale",
+        common_name="rye",
+        seed_class=SeedClass.CEREAL,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("120"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.BETWEEN_PAPER, "20", 4, 7),
+        moisture=_cereal_moisture(),
+    ),
+    Species(
+        botanical_name="Zea mays",
+        common_name="maize",
+        seed_class=SeedClass.CEREAL,
+        max_lot_kg=40000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("900"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.BETWEEN_PAPER, "20-30", 4, 7),
+        moisture=_cereal_moisture(),
+        aliases=("corn", "sweetcorn"),
+    ),
+    Species(
+        botanical_name="Sorghum bicolor",
+        common_name="sorghum",
+        seed_class=SeedClass.CEREAL,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("900"),
+        purity_working_sample_g=_g("90"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20-30", 4, 10),
+        moisture=_cereal_moisture(),
+    ),
+    Species(
+        botanical_name="Oryza sativa",
+        common_name="rice",
+        seed_class=SeedClass.CEREAL,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("700"),
+        purity_working_sample_g=_g("70"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20-30", 5, 14),
+        moisture=_cereal_moisture(),
+    ),
+    Species(
+        botanical_name="Pisum sativum",
+        common_name="pea",
+        seed_class=SeedClass.LARGE_LEGUME,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("900"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.BETWEEN_PAPER, "20", 5, 8),
+        moisture=_cereal_moisture(),
+        aliases=("field pea", "garden pea"),
+    ),
+    Species(
+        botanical_name="Vicia faba",
+        common_name="field bean",
+        seed_class=SeedClass.LARGE_LEGUME,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("1000"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.SAND, "20", 4, 14),
+        moisture=_cereal_moisture(),
+        aliases=("broad bean", "faba bean"),
+    ),
+    Species(
+        botanical_name="Phaseolus vulgaris",
+        common_name="french bean",
+        seed_class=SeedClass.LARGE_LEGUME,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("700"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.SAND, "20-30", 5, 9),
+        moisture=_cereal_moisture(),
+        aliases=("dwarf bean", "runner bean"),
+    ),
+    Species(
+        botanical_name="Glycine max",
+        common_name="soya bean",
+        seed_class=SeedClass.LARGE_LEGUME,
+        max_lot_kg=30000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("500"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.BETWEEN_PAPER, "20-30", 5, 8),
+        moisture=_oily_moisture(),
+        aliases=("soybean", "soya"),
+    ),
+    Species(
+        botanical_name="Brassica napus",
+        common_name="oilseed rape",
+        seed_class=SeedClass.BRASSICA,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("100"),
+        purity_working_sample_g=_g("10"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20", 5, 7),
+        moisture=_oily_moisture(),
+        aliases=("rape", "canola"),
+    ),
+    Species(
+        botanical_name="Brassica oleracea",
+        common_name="cabbage",
+        seed_class=SeedClass.BRASSICA,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("100"),
+        purity_working_sample_g=_g("10"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20", 5, 10),
+        moisture=_whole_seed_moisture(),
+        aliases=("kale", "cauliflower", "broccoli"),
+    ),
+    Species(
+        botanical_name="Sinapis alba",
+        common_name="white mustard",
+        seed_class=SeedClass.BRASSICA,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("100"),
+        purity_working_sample_g=_g("10"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20", 4, 7),
+        moisture=_oily_moisture(),
+    ),
+    Species(
+        botanical_name="Linum usitatissimum",
+        common_name="flax",
+        seed_class=SeedClass.OIL_AND_FIBRE,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("150"),
+        purity_working_sample_g=_g("15"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20", 3, 7),
+        moisture=_oily_moisture(),
+        aliases=("linseed",),
+    ),
+    Species(
+        botanical_name="Helianthus annuus",
+        common_name="sunflower",
+        seed_class=SeedClass.OIL_AND_FIBRE,
+        max_lot_kg=25000,
+        submitted_sample_g=_g("1000"),
+        purity_working_sample_g=_g("200"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.BETWEEN_PAPER, "20-30", 4, 10),
+        moisture=_oily_moisture(),
+    ),
+    Species(
+        botanical_name="Beta vulgaris",
+        common_name="beet",
+        seed_class=SeedClass.BEET,
+        max_lot_kg=20000,
+        submitted_sample_g=_g("500"),
+        purity_working_sample_g=_g("50"),
+        chaffy=True,
+        germination=GerminationMethod(
+            Substrate.PLEATED_PAPER, "20-30", 4, 14, notes="prewash for two hours"
+        ),
+        moisture=_cereal_moisture(),
+        aliases=("sugar beet", "fodder beet", "beetroot"),
+    ),
+    Species(
+        botanical_name="Daucus carota",
+        common_name="carrot",
+        seed_class=SeedClass.VEGETABLE,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("30"),
+        purity_working_sample_g=_g("3"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20-30", 7, 14),
+        moisture=_whole_seed_moisture(),
+    ),
+    Species(
+        botanical_name="Allium cepa",
+        common_name="onion",
+        seed_class=SeedClass.VEGETABLE,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("80"),
+        purity_working_sample_g=_g("8"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20", 6, 12, prechill_days=3),
+        moisture=_whole_seed_moisture(),
+    ),
+    Species(
+        botanical_name="Lactuca sativa",
+        common_name="lettuce",
+        seed_class=SeedClass.VEGETABLE,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("30"),
+        purity_working_sample_g=_g("3"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20", 4, 7),
+        moisture=_whole_seed_moisture(),
+    ),
+    Species(
+        botanical_name="Solanum lycopersicum",
+        common_name="tomato",
+        seed_class=SeedClass.VEGETABLE,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("15"),
+        purity_working_sample_g=_g("7"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20-30", 5, 14),
+        moisture=_whole_seed_moisture(),
+        aliases=("lycopersicon esculentum",),
+    ),
+    Species(
+        botanical_name="Lolium perenne",
+        common_name="perennial ryegrass",
+        seed_class=SeedClass.GRASS,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("60"),
+        purity_working_sample_g=_g("6"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20-30", 5, 14, prechill_days=5),
+        moisture=_whole_seed_moisture(),
+        aliases=("ryegrass",),
+    ),
+    Species(
+        botanical_name="Festuca rubra",
+        common_name="red fescue",
+        seed_class=SeedClass.GRASS,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("50"),
+        purity_working_sample_g=_g("5"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20-30", 7, 21, prechill_days=5),
+        moisture=_whole_seed_moisture(),
+    ),
+    Species(
+        botanical_name="Poa pratensis",
+        common_name="smooth meadow grass",
+        seed_class=SeedClass.GRASS,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("25"),
+        purity_working_sample_g=_g("1"),
+        chaffy=True,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20-30", 10, 28, prechill_days=5),
+        moisture=_whole_seed_moisture(),
+        aliases=("kentucky bluegrass",),
+    ),
+    Species(
+        botanical_name="Trifolium repens",
+        common_name="white clover",
+        seed_class=SeedClass.SMALL_LEGUME,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("60"),
+        purity_working_sample_g=_g("6"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20", 4, 10),
+        moisture=_whole_seed_moisture(),
+        aliases=("clover",),
+    ),
+    Species(
+        botanical_name="Medicago sativa",
+        common_name="lucerne",
+        seed_class=SeedClass.SMALL_LEGUME,
+        max_lot_kg=10000,
+        submitted_sample_g=_g("70"),
+        purity_working_sample_g=_g("7"),
+        chaffy=False,
+        germination=GerminationMethod(Substrate.TOP_OF_PAPER, "20", 4, 10),
+        moisture=_whole_seed_moisture(),
+        aliases=("alfalfa",),
+    ),
+)
