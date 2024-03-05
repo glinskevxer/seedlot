@@ -11,13 +11,13 @@ from arc.certificates.model import (
     Certificate,
     CertificateKind,
     CertificateNumber,
-    TestResults,
+    Determinations,
     check_certificate,
 )
 from arc.quantities import Percentage
 
 
-def full_results(**overrides: object) -> TestResults:
+def full_results(**overrides: object) -> Determinations:
     defaults: dict[str, object] = {
         "pure_seed": Percentage("98.4"),
         "other_seed": Percentage("0.8"),
@@ -28,13 +28,13 @@ def full_results(**overrides: object) -> TestResults:
         "thousand_seed_weight_g": Decimal("45.0"),
     }
     defaults.update(overrides)
-    return TestResults(**defaults)  # type: ignore[arg-type]
+    return Determinations(**defaults)  # type: ignore[arg-type]
 
 
 def a_certificate(
     *,
     kind: CertificateKind = CertificateKind.ORANGE_INTERNATIONAL,
-    results: TestResults | None = None,
+    results: Determinations | None = None,
     issued_on: date = date(2024, 10, 2),
     supersedes: CertificateNumber | None = None,
 ) -> Certificate:
@@ -95,7 +95,7 @@ class TestWhatWasDetermined:
         )
 
     def test_a_determination_nobody_made_is_absent(self) -> None:
-        results = TestResults(pure_seed=Percentage("99.0"))
+        results = Determinations(pure_seed=Percentage("99.0"))
 
         assert results.has_purity
         assert not results.has_germination
@@ -103,7 +103,7 @@ class TestWhatWasDetermined:
         assert results.determinations() == ("purity",)
 
     def test_nothing_determined_at_all_lists_nothing(self) -> None:
-        assert TestResults().determinations() == ()
+        assert Determinations().determinations() == ()
 
 
 class TestTheKinds:
@@ -130,7 +130,7 @@ class TestWhenAGerminationStopsBeingQuotable:
         assert not certificate.germination_current_on(date(2025, 9, 29))
 
     def test_a_certificate_with_no_germination_has_nothing_to_expire(self) -> None:
-        certificate = a_certificate(results=TestResults(pure_seed=Percentage("99.0")))
+        certificate = a_certificate(results=Determinations(pure_seed=Percentage("99.0")))
 
         assert certificate.germination_valid_until() is None
         assert not certificate.germination_current_on(date(2024, 10, 2))
@@ -159,7 +159,7 @@ class TestWhatMayBeIssued:
     def test_a_green_one_may_carry_a_single_determination(self) -> None:
         certificate = a_certificate(
             kind=CertificateKind.GREEN_ANALYSIS,
-            results=TestResults(moisture_percent=Decimal("14.0")),
+            results=Determinations(moisture_percent=Decimal("14.0")),
         )
 
         assert check_certificate(certificate) == []
@@ -192,7 +192,7 @@ class TestWhatMayBeIssued:
     def test_everything_wrong_comes_back_at_once(self) -> None:
         broken = check_certificate(
             a_certificate(
-                results=TestResults(
+                results=Determinations(
                     pure_seed=Percentage("98.0"),
                     other_seed=Percentage("0.8"),
                     inert_matter=Percentage("0.8"),

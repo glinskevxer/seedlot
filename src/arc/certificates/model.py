@@ -30,7 +30,7 @@ from arc.quantities import Percentage
 __all__ = [
     "CertificateKind",
     "CertificateNumber",
-    "TestResults",
+    "Determinations",
     "Certificate",
     "GERMINATION_VALID_FOR",
     "check_certificate",
@@ -99,8 +99,13 @@ class CertificateNumber:
 
 
 @dataclass(frozen=True)
-class TestResults:
-    """What was determined. Anything not determined is absent, never zero."""
+class Determinations:
+    """What was determined. Anything not determined is absent, never zero.
+
+    Called this rather than the obvious name because pytest collects anything
+    beginning with Test as a test class, and a dataclass with a constructor
+    then produces a warning on every run until somebody goes looking.
+    """
 
     pure_seed: Percentage | None = None
     other_seed: Percentage | None = None
@@ -145,7 +150,7 @@ class Certificate:
     merchant: str
     origin_country: str
     lot_weight_kg: Decimal
-    results: TestResults
+    results: Determinations
     issued_on: date
     signed_by: str
     supersedes: CertificateNumber | None = field(default=None)
