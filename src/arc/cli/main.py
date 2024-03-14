@@ -60,9 +60,11 @@ def cli(ctx: click.Context, database: Path, quiet: bool) -> None:
     ctx.obj = Context(database=database, quiet=quiet)
 
 
+from arc.cli.lot_commands import lot
 from arc.cli.species_commands import species
 
 cli.add_command(species)
+cli.add_command(lot)
 
 
 @cli.command()
