@@ -12,7 +12,7 @@ conversation with the merchant, not a row in the database with a flag on it.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 
 from arc.errors import RuleBroken
@@ -53,14 +53,20 @@ def book_in(
     """
     species = register.require(lot.species_name)
 
-    broken = check_lot(lot, species)
+    # Whatever was written on the paperwork, the lot is stored under the
+    # botanical name. Everything downstream looks lots up by species, and a
+    # station holding the same species under "wheat" and "Triticum aestivum"
+    # answers "which lots of this are open" wrongly and quietly.
+    accepted = replace(lot, species_name=species.botanical_name)
+
+    broken = check_lot(accepted, species)
     if broken:
         raise RuleBroken(broken)
 
-    plan = plan_for(lot, species)
-    lots.save(lot, booked_in_on=on)
+    plan = plan_for(accepted, species)
+    lots.save(accepted, booked_in_on=on)
 
-    return BookedIn(lot=lot, species=species, plan=plan)
+    return BookedIn(lot=accepted, species=species, plan=plan)
 
 
 def split_advice(lot: SeedLot) -> tuple[int, str]:
