@@ -51,6 +51,7 @@ class Gathered:
 
 def gather(
     lot_reference: str,
+    species_name: str,
     *,
     purity: PurityRepository,
     germination: GerminationRepository,
@@ -59,6 +60,11 @@ def gather(
 
     Duplicate purity analyses are compared here rather than at the bench,
     because it is only at issuing time that both of them certainly exist.
+
+    The species has to be passed in. The purity rows do not carry it and the
+    duplicate tolerance is a different number for chaffy seed, so working it
+    out from anything to hand here would mean holding grass to the allowance
+    for wheat.
     """
     problems: list[Rule] = []
 
@@ -73,8 +79,8 @@ def gather(
 
         if len(analyses) >= 2:
             first, second = analyses[-2], analyses[-1]
-            species = register.find(_species_of(first.lot_reference))
-            chaffy = bool(species and species.chaffy)
+            species = register.require(species_name)
+            chaffy = species.chaffy
             check = compare(
                 first.pure_seed_percent,  # type: ignore[arg-type]
                 second.pure_seed_percent,  # type: ignore[arg-type]
@@ -137,7 +143,12 @@ def issue(
     nobody notices until an audit asks for the two to be reconciled.
     """
     lot = lots.require(lot_reference)
-    gathered = gather(lot_reference, purity=purity, germination=germination)
+    gathered = gather(
+        lot_reference,
+        lot.species_name,
+        purity=purity,
+        germination=germination,
+    )
 
     number = CertificateNumber(
         station=_station_code(),
@@ -176,9 +187,3 @@ def _station_code() -> str:
 
     return STATION_CODE
 
-
-def _species_of(lot_reference: str) -> str:
-    # The stored analysis does not carry the species, so the lot does. Kept as
-    # its own function because the day a lot can hold two species this is the
-    # line that has to change.
-    return lot_reference
