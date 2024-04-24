@@ -3,30 +3,24 @@
 from __future__ import annotations
 
 from datetime import date
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 import click
 
 from arc.errors import RuleBroken
 from arc.lots.model import ContainerKind, LotReference, SeedLot
-from arc.storage.lots import LotRepository
-from arc.storage.schema import connect, migrate
+from arc.cli.station import open_station, weight_option
 from arc.workflow.booking import book_in, split_advice
 
 __all__ = ["lot"]
 
 
-def _repository(database) -> LotRepository:
-    connection = connect(database)
-    migrate(connection)
-    return LotRepository(connection)
+def _repository(database):
+    return open_station(database).lots
 
 
 def _weight(raw: str) -> Decimal:
-    try:
-        return Decimal(raw)
-    except InvalidOperation as error:
-        raise click.BadParameter(f"{raw!r} is not a weight") from error
+    return weight_option(raw)
 
 
 @click.group()
