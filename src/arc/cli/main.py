@@ -60,6 +60,7 @@ def cli(ctx: click.Context, database: Path, quiet: bool) -> None:
     ctx.obj = Context(database=database, quiet=quiet)
 
 
+from arc.cli.germination_commands import germination
 from arc.cli.lot_commands import lot
 from arc.cli.purity_commands import purity
 from arc.cli.species_commands import species
@@ -67,6 +68,7 @@ from arc.cli.species_commands import species
 cli.add_command(species)
 cli.add_command(lot)
 cli.add_command(purity)
+cli.add_command(germination)
 
 
 @cli.command()
