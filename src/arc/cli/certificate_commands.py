@@ -1,0 +1,138 @@
+"""Issuing and looking up certificates."""
+
+from __future__ import annotations
+
+from datetime import date
+
+import click
+
+from arc.certificates.model import CertificateKind
+from arc.cli.station import open_station
+from arc.errors import RuleBroken
+from arc.workflow.issuing import gather, issue
+
+__all__ = ["certificate"]
+
+_KINDS = {
+    "orange": CertificateKind.ORANGE_INTERNATIONAL,
+    "blue": CertificateKind.BLUE_INTERNATIONAL,
+    "green": CertificateKind.GREEN_ANALYSIS,
+}
+
+
+@click.group()
+def certificate() -> None:
+    """Certificates: the only thing that leaves the building."""
+
+
+@certificate.command("check")
+@click.argument("reference")
+@click.pass_obj
+def check(context, reference: str) -> None:
+    """What the station has on a lot, and whether it is enough to certify."""
+    station = open_station(context.database)
+    lot = station.lots.require(reference)
+
+    gathered = gather(
+        reference,
+        lot.species_name,
+        purity=station.purity,
+        germination=station.germination,
+    )
+
+    done = gathered.results.determinations()
+    click.echo(f"{reference} {lot.species_name}")
+    click.echo(f"  determined  {', '.join(done) if done else 'nothing yet'}")
+
+    if gathered.results.has_purity:
+        click.echo(f"  pure seed   {gathered.results.pure_seed}")
+    if gathered.results.has_germination:
+        click.echo(f"  germination {gathered.results.germination_percent} percent")
+
+    if gathered.is_ready:
+        click.echo("  ready to certify")
+    else:
+        for rule in gathered.problems:
+            click.echo(f"  not ready: {rule.detail}")
+
+
+@certificate.command("issue")
+@click.argument("reference")
+@click.option(
+    "--kind",
+    type=click.Choice(sorted(_KINDS)),
+    default="orange",
+    show_default=True,
+)
+@click.option("--signed-by", required=True)
+@click.pass_obj
+def issue_command(context, reference: str, kind: str, signed_by: str) -> None:
+    """Issue a certificate for a lot."""
+    station = open_station(context.database)
+
+    try:
+        issued = issue(
+            reference,
+            _KINDS[kind],
+            signed_by=signed_by,
+            on=date.today(),
+            lots=station.lots,
+            purity=station.purity,
+            germination=station.germination,
+            certificates=station.certificates,
+        )
+    except RuleBroken as refused:
+        for rule in refused.rules:
+            click.echo(f"refused: {rule.detail}", err=True)
+        raise SystemExit(2) from refused
+
+    context.say(f"issued against {reference}")
+    click.echo(str(issued.number))
+
+
+@certificate.command("show")
+@click.argument("number")
+@click.pass_obj
+def show(context, number: str) -> None:
+    """One certificate, as it reads."""
+    station = open_station(context.database)
+    found = station.certificates.require(number)
+    results = found.results
+
+    click.echo(str(found.number))
+    click.echo(f"  kind        {found.kind.value}")
+    click.echo(f"  lot         {found.lot_reference}")
+    click.echo(f"  species     {found.species_name}")
+    click.echo(f"  merchant    {found.merchant}")
+    click.echo(f"  weight      {found.lot_weight_kg} kg")
+    click.echo(f"  origin      {found.origin_country}")
+    click.echo(f"  issued      {found.issued_on} by {found.signed_by}")
+
+    if results.has_purity:
+        click.echo(
+            f"  purity      pure {results.pure_seed}  "
+            f"other {results.other_seed}  inert {results.inert_matter}"
+        )
+    if results.has_germination:
+        valid_until = found.germination_valid_until()
+        click.echo(
+            f"  germination {results.germination_percent} percent, "
+            f"quotable to {valid_until}"
+        )
+    if results.moisture_percent is not None:
+        click.echo(f"  moisture    {results.moisture_percent} percent")
+
+    if found.is_replacement:
+        click.echo(f"  supersedes  {found.supersedes}")
+    if found.is_withdrawn:
+        click.echo(f"  withdrawn   {found.withdrawn_on}")
+
+
+@certificate.command("withdraw")
+@click.argument("number")
+@click.pass_obj
+def withdraw(context, number: str) -> None:
+    """Withdraw a certificate. The row stays; somebody holds a copy."""
+    station = open_station(context.database)
+    station.certificates.withdraw(number, on=date.today())
+    context.say(f"withdrawn {number}")
