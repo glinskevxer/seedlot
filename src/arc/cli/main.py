@@ -13,6 +13,7 @@ is not the person who would fix a stack trace.
 from __future__ import annotations
 
 import sys
+from datetime import date
 from pathlib import Path
 
 import click
@@ -28,9 +29,13 @@ DEFAULT_DATABASE = Path("var/arc.sqlite3")
 class Context:
     """What every command needs, put together once at the top."""
 
-    def __init__(self, database: Path, quiet: bool) -> None:
+    def __init__(self, database: Path, quiet: bool, today: date) -> None:
         self.database = database
         self.quiet = quiet
+        #: The day the work is being recorded against. Normally today, but the
+        #: bench sheets are sometimes typed up the next morning and the dates
+        #: on them have to be the dates the work was actually done.
+        self.today = today
 
     def say(self, message: str) -> None:
         if not self.quiet:
@@ -54,10 +59,20 @@ pass_context = click.make_pass_decorator(Context)
     help="Where the station's database lives.",
 )
 @click.option("--quiet", "-q", is_flag=True, help="Print results and nothing else.")
+@click.option(
+    "--today",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    default=None,
+    help="Record the work against this day rather than today.",
+)
 @click.pass_context
-def cli(ctx: click.Context, database: Path, quiet: bool) -> None:
+def cli(ctx: click.Context, database: Path, quiet: bool, today) -> None:
     """Analysis, reporting and certification for the seed testing station."""
-    ctx.obj = Context(database=database, quiet=quiet)
+    ctx.obj = Context(
+        database=database,
+        quiet=quiet,
+        today=today.date() if today is not None else date.today(),
+    )
 
 
 from arc.cli.certificate_commands import certificate

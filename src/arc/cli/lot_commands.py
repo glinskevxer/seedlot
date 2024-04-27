@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import date
 from decimal import Decimal
 
 import click
@@ -68,7 +67,7 @@ def book_in_command(
 
     lots = _repository(context.database)
     try:
-        booked = book_in(incoming, lots, on=date.today())
+        booked = book_in(incoming, lots, on=context.today)
     except RuleBroken as refused:
         for rule in refused.rules:
             click.echo(f"refused: {rule.detail}", err=True)

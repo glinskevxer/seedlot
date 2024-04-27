@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import date
-
 import click
 
 from arc.certificates.model import CertificateKind
@@ -75,7 +73,7 @@ def issue_command(context, reference: str, kind: str, signed_by: str) -> None:
             reference,
             _KINDS[kind],
             signed_by=signed_by,
-            on=date.today(),
+            on=context.today,
             lots=station.lots,
             purity=station.purity,
             germination=station.germination,
@@ -134,5 +132,5 @@ def show(context, number: str) -> None:
 def withdraw(context, number: str) -> None:
     """Withdraw a certificate. The row stays; somebody holds a copy."""
     station = open_station(context.database)
-    station.certificates.withdraw(number, on=date.today())
+    station.certificates.withdraw(number, on=context.today)
     context.say(f"withdrawn {number}")

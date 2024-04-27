@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import date
-
 import click
 
 from arc.errors import RuleBroken
@@ -61,13 +59,13 @@ def record(
         # It is still recorded. An analysis that was void is part of what
         # happened to the sample and the next one has to be comparable to it.
         station.purity.record(
-            reference, analysis, None, analysed_on=date.today(), is_duplicate=duplicate
+            reference, analysis, None, analysed_on=context.today, is_duplicate=duplicate
         )
         raise SystemExit(2)
 
     result = analyse(analysis, species)
     station.purity.record(
-        reference, analysis, result, analysed_on=date.today(), is_duplicate=duplicate
+        reference, analysis, result, analysed_on=context.today, is_duplicate=duplicate
     )
 
     context.say(f"recorded against {reference}")
