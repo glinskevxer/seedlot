@@ -11,13 +11,13 @@ from arc.errors import NotFound
 from arc.lots.model import ContainerKind, LotReference, LotStatus
 from arc.storage.lots import LotRepository
 from arc.storage.schema import connect, migrate
+from tests.support import open_test_database
 from tests.conftest import make_lot
 
 
 @pytest.fixture
 def lots(tmp_path):
-    connection = connect(tmp_path / "arc.sqlite3")
-    migrate(connection)
+    connection = open_test_database(tmp_path / "arc.sqlite3")
     yield LotRepository(connection)
     connection.close()
 

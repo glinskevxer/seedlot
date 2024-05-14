@@ -23,6 +23,7 @@ from arc.storage.certificates import (
 )
 from arc.storage.lots import LotRepository
 from arc.storage.schema import connect, migrate
+from tests.support import open_test_database
 from tests.conftest import make_lot
 
 BOOKED = date(2024, 9, 18)
@@ -30,8 +31,7 @@ BOOKED = date(2024, 9, 18)
 
 @pytest.fixture
 def certificates(tmp_path):
-    connection = connect(tmp_path / "arc.sqlite3")
-    migrate(connection)
+    connection = open_test_database(tmp_path / "arc.sqlite3")
     LotRepository(connection).save(make_lot(), booked_in_on=BOOKED)
     yield CertificateRepository(connection)
     connection.close()

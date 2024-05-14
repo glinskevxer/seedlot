@@ -17,6 +17,7 @@ from arc.storage.certificates import CertificateRepository
 from arc.storage.determinations import GerminationRepository, PurityRepository
 from arc.storage.lots import LotRepository
 from arc.storage.schema import connect, migrate
+from tests.support import open_test_database
 from arc.workflow.issuing import gather, issue
 from tests.conftest import make_lot
 
@@ -28,8 +29,7 @@ class Station:
     """The four repositories a job touches, opened on one connection."""
 
     def __init__(self, path) -> None:
-        self.connection = connect(path)
-        migrate(self.connection)
+        self.connection = open_test_database(path)
         self.lots = LotRepository(self.connection)
         self.purity = PurityRepository(self.connection)
         self.germination = GerminationRepository(self.connection)

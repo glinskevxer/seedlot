@@ -147,17 +147,24 @@ MIGRATIONS: tuple[Migration, ...] = (
 )
 
 
-def connect(path: Path | str) -> sqlite3.Connection:
+def connect(path: Path | str, *, journal_mode: str = "wal") -> sqlite3.Connection:
     """Opens the database with the settings the station relies on.
 
     Foreign keys are off by default in SQLite, which means a reference to a lot
     that does not exist is accepted quietly. Everything here assumes they are
     on, so they are turned on for every connection rather than hoped for.
+
+    The journal mode is a parameter because the two callers want different
+    things from it. The station wants write ahead logging: the file is on a
+    share, two people have the console open, and a power cut in the middle of
+    a certificate must not take the database with it. A test wants a database
+    that lives for four milliseconds and does not need to survive anything, and
+    setting up the log costs more than every query the test then runs.
     """
     connection = sqlite3.connect(path, isolation_level=None)
     connection.row_factory = sqlite3.Row
     connection.execute("pragma foreign_keys = on")
-    connection.execute("pragma journal_mode = wal")
+    connection.execute(f"pragma journal_mode = {journal_mode}")
     return connection
 
 
