@@ -79,6 +79,7 @@ from arc.cli.certificate_commands import certificate
 from arc.cli.germination_commands import germination
 from arc.cli.lot_commands import lot
 from arc.cli.purity_commands import purity
+from arc.cli.report_commands import report
 from arc.cli.species_commands import species
 
 cli.add_command(species)
@@ -86,6 +87,7 @@ cli.add_command(lot)
 cli.add_command(purity)
 cli.add_command(germination)
 cli.add_command(certificate)
+cli.add_command(report)
 
 
 @cli.command()
