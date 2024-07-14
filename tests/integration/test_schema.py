@@ -82,8 +82,10 @@ class TestApplyingThem:
 
         applied = migrate(db)
 
+        # Derived rather than written out, so adding a migration does not mean
+        # editing a test that is not about the new table.
         assert 1 not in applied
-        assert applied == (2, 3)
+        assert applied == tuple(m.version for m in MIGRATIONS if m.version != 1)
 
 
 class TestWhatTheConnectionGuarantees:

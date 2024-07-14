@@ -144,6 +144,52 @@ MIGRATIONS: tuple[Migration, ...] = (
             """,
         ),
     ),
+    Migration(
+        version=4,
+        name="moisture and seed weight",
+        statements=(
+            """
+            create table moisture_determination (
+                id               integer primary key autoincrement,
+                lot_reference    text not null references lot (reference),
+                container_g      text not null,
+                with_sample_g    text not null,
+                after_drying_g   text not null,
+                percent          text not null,
+                stage            text not null,
+                combined_percent text,
+                analyst          text not null,
+                determined_on    text not null,
+                constraint moisture_stage_ck check (stage in ('single', 'predry', 'second'))
+            )
+            """,
+            "create index moisture_lot_idx on moisture_determination (lot_reference)",
+            """
+            create table seed_weight (
+                id             integer primary key autoincrement,
+                lot_reference  text not null references lot (reference),
+                mean_g         text not null,
+                deviation_g    text not null,
+                variation      text not null,
+                limit_applied  text not null,
+                grams_per_thousand text not null,
+                analyst        text not null,
+                determined_on  text not null
+            )
+            """,
+            """
+            create table seed_weight_replicate (
+                id              integer primary key autoincrement,
+                seed_weight_id  integer not null
+                    references seed_weight (id) on delete cascade,
+                position        integer not null,
+                weight_g        text not null,
+                unique (seed_weight_id, position)
+            )
+            """,
+            "create index seed_weight_lot_idx on seed_weight (lot_reference)",
+        ),
+    ),
 )
 
 
