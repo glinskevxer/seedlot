@@ -36,6 +36,8 @@ def check(context, reference: str) -> None:
         lot.species_name,
         purity=station.purity,
         germination=station.germination,
+        moisture=station.moisture,
+        seed_weight=station.seed_weight,
     )
 
     done = gathered.results.determinations()
@@ -46,6 +48,12 @@ def check(context, reference: str) -> None:
         click.echo(f"  pure seed   {gathered.results.pure_seed}")
     if gathered.results.has_germination:
         click.echo(f"  germination {gathered.results.germination_percent} percent")
+    if gathered.results.moisture_percent is not None:
+        click.echo(f"  moisture    {gathered.results.moisture_percent} percent")
+    if gathered.results.thousand_seed_weight_g is not None:
+        click.echo(
+            f"  seed weight {gathered.results.thousand_seed_weight_g} g per thousand"
+        )
 
     if gathered.is_ready:
         click.echo("  ready to certify")
@@ -78,6 +86,8 @@ def issue_command(context, reference: str, kind: str, signed_by: str) -> None:
             purity=station.purity,
             germination=station.germination,
             certificates=station.certificates,
+            moisture=station.moisture,
+            seed_weight=station.seed_weight,
         )
     except RuleBroken as refused:
         for rule in refused.rules:
@@ -119,6 +129,8 @@ def show(context, number: str) -> None:
         )
     if results.moisture_percent is not None:
         click.echo(f"  moisture    {results.moisture_percent} percent")
+    if results.thousand_seed_weight_g is not None:
+        click.echo(f"  seed weight {results.thousand_seed_weight_g} g per thousand")
 
     if found.is_replacement:
         click.echo(f"  supersedes  {found.supersedes}")

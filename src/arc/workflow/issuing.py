@@ -33,6 +33,7 @@ from arc.species import register
 from arc.storage.certificates import CertificateRepository
 from arc.storage.determinations import GerminationRepository, PurityRepository
 from arc.storage.lots import LotRepository
+from arc.storage.physical import MoistureRepository, SeedWeightRepository
 
 __all__ = ["gather", "issue"]
 
@@ -55,6 +56,8 @@ def gather(
     *,
     purity: PurityRepository,
     germination: GerminationRepository,
+    moisture: MoistureRepository | None = None,
+    seed_weight: SeedWeightRepository | None = None,
 ) -> Gathered:
     """Pulls the recorded determinations together into one set of results.
 
@@ -113,6 +116,25 @@ def gather(
                 )
             )
 
+    moisture_percent = (
+        None if moisture is None else moisture.reportable_for_lot(lot_reference)
+    )
+
+    thousand_seed_weight = None
+    if seed_weight is not None:
+        latest = seed_weight.latest_for_lot(lot_reference)
+        if latest is not None:
+            if latest.within_tolerance:
+                thousand_seed_weight = latest.grams_per_thousand
+            else:
+                problems.append(
+                    Rule(
+                        "SEED_WEIGHT_SCATTER_TOO_WIDE",
+                        f"the thousand seed weight cannot be reported: {latest.explain()}",
+                        lot_reference,
+                    )
+                )
+
     return Gathered(
         results=Determinations(
             pure_seed=pure,
@@ -120,6 +142,8 @@ def gather(
             inert_matter=inert,
             germination_percent=germination_percent,
             germination_tested_on=tested_on,
+            moisture_percent=moisture_percent,
+            thousand_seed_weight_g=thousand_seed_weight,
         ),
         problems=tuple(problems),
     )
@@ -135,6 +159,8 @@ def issue(
     purity: PurityRepository,
     germination: GerminationRepository,
     certificates: CertificateRepository,
+    moisture: MoistureRepository | None = None,
+    seed_weight: SeedWeightRepository | None = None,
 ) -> Certificate:
     """Issues a certificate for a lot, or refuses with every reason it cannot.
 
@@ -148,6 +174,8 @@ def issue(
         lot.species_name,
         purity=purity,
         germination=germination,
+        moisture=moisture,
+        seed_weight=seed_weight,
     )
 
     number = CertificateNumber(
