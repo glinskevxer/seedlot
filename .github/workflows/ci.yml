@@ -1,0 +1,165 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A second push to the same branch makes the first run pointless, so stop it
+# rather than queue behind it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: python ${{ matrix.python }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # The station runs on whatever the office machines have. Both are in
+        # the matrix because a decimal rounding change between them would show
+        # up here rather than on a certificate.
+        python: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+
+      - name: Test
+        run: python -m pytest --cov=arc --cov-report=term-missing --cov-report=xml
+
+      - name: Keep the coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python }}
+          path: coverage.xml
+          retention-days: 7
+
+  lint:
+    name: lint and types
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+
+      - name: Format and lint
+        run: |
+          python -m ruff check .
+          python -m ruff format --check .
+
+      - name: Types
+        run: python -m mypy
+
+  migrations:
+    name: migrations apply forwards
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    # The suite migrates an empty database on every test. This job checks the
+    # other failure: a migration that works on an empty database and not on one
+    # that already holds the previous release's schema.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+
+      - name: Check the numbering
+        run: python -m arc.tools.check_migrations
+
+      - name: Apply them, then apply them again
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from arc.storage.schema import connect, migrate
+
+          Path("var").mkdir(exist_ok=True)
+          database = Path("var/ci.sqlite3")
+
+          first = connect(database)
+          applied = migrate(first)
+          print("applied", applied)
+          assert applied, "an empty database should have taken every migration"
+
+          again = migrate(first)
+          assert again == (), f"a second run applied {again}"
+          first.close()
+          print("a second run applied nothing, as it should")
+          PY
+
+  cli:
+    name: the command line works
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    # An import error in a command module does not fail the unit tests, because
+    # a test that never imports it never notices. This walks a real job through
+    # the installed entry point instead.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install .
+
+      - name: Walk a lot through
+        env:
+          ARC_DATABASE: var/smoke.sqlite3
+        run: |
+          set -euo pipefail
+          arc --version
+          arc station
+          arc species show wheat
+          arc lot book-in L-2024-0041 --species wheat --weight 24000 \
+            --containers bag --container-count 480 --merchant "Ravenscar Grain" \
+            --sealed-on 2024-09-12 --origin GB
+          arc purity record L-2024-0041 --working 120.0 --pure 118.2 \
+            --other 0.9 --inert 0.9 --analyst "J. Whitfield"
+          arc germination record L-2024-0041 \
+            --tray 96,4,0,0,0 --tray 95,5,0,0,0 --tray 97,3,0,0,0 --tray 96,4,0,0,0 \
+            --set-down 2024-09-20 --final-count 2024-09-28 --analyst "J. Whitfield"
+          arc certificate issue L-2024-0041 --signed-by "A. Pearce"
+          arc report work
+          arc report certificates
