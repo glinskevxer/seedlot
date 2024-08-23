@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from tests.conftest import make_lot
 
 from arc.lots import (
     ContainerKind,
@@ -15,7 +16,6 @@ from arc.lots import (
     over_maximum_by,
     sublots_needed,
 )
-from tests.conftest import make_lot
 
 
 class TestLotReference:
@@ -99,7 +99,11 @@ class TestSamplingRoute:
 
     def test_big_bags_never_can_either(self) -> None:
         assert must_be_sampled_in_stream(
-            make_lot(container_kind=ContainerKind.BIG_BAG, weight_kg="24000", container_count=24)
+            make_lot(
+                container_kind=ContainerKind.BIG_BAG,
+                weight_kg="24000",
+                container_count=24,
+            )
         )
 
     def test_bags_too_heavy_to_reach_the_middle_of_are_treated_as_bulk(self) -> None:

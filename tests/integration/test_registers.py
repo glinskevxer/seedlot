@@ -8,6 +8,8 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from tests.conftest import make_lot
+from tests.support import open_test_database
 
 from arc.certificates.model import (
     Certificate,
@@ -20,9 +22,6 @@ from arc.quantities import Percentage
 from arc.reporting.registers import certificate_register, merchant_register, work_in_progress
 from arc.storage.certificates import CertificateRepository
 from arc.storage.lots import LotRepository
-from arc.storage.schema import connect, migrate
-from tests.support import open_test_database
-from tests.conftest import make_lot
 
 BOOKED = date(2024, 9, 18)
 

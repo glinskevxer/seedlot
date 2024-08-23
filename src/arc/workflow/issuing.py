@@ -24,7 +24,7 @@ from arc.certificates.model import (
     Determinations,
     check_certificate,
 )
-from arc.errors import RuleBroken, Rule
+from arc.errors import Rule, RuleBroken
 from arc.germination.outcome import decide
 from arc.lots.model import LotStatus
 from arc.purity.tolerance import compare
@@ -122,15 +122,15 @@ def gather(
 
     thousand_seed_weight = None
     if seed_weight is not None:
-        latest = seed_weight.latest_for_lot(lot_reference)
-        if latest is not None:
-            if latest.within_tolerance:
-                thousand_seed_weight = latest.grams_per_thousand
+        weighing = seed_weight.latest_for_lot(lot_reference)
+        if weighing is not None:
+            if weighing.within_tolerance:
+                thousand_seed_weight = weighing.grams_per_thousand
             else:
                 problems.append(
                     Rule(
                         "SEED_WEIGHT_SCATTER_TOO_WIDE",
-                        f"the thousand seed weight cannot be reported: {latest.explain()}",
+                        f"the thousand seed weight cannot be reported: {weighing.explain()}",
                         lot_reference,
                     )
                 )

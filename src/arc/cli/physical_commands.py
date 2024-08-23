@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import click
 
+from arc.cli.context import Context
 from arc.cli.station import open_station, weight_option
 from arc.moisture.determination import (
     Weighing,
@@ -50,7 +51,7 @@ def moisture() -> None:
 )
 @click.pass_obj
 def record_moisture(
-    context,
+    context: Context,
     reference: str,
     container: str,
     wet: str,
@@ -106,7 +107,7 @@ def record_moisture(
 @moisture.command("show")
 @click.argument("reference")
 @click.pass_obj
-def show_moisture(context, reference: str) -> None:
+def show_moisture(context: Context, reference: str) -> None:
     """Every moisture weighing on a lot, and what would be reported."""
     station = open_station(context.database)
     station.lots.require(reference)
@@ -151,7 +152,7 @@ def seedweight() -> None:
 @click.option("--analyst", required=True)
 @click.pass_obj
 def record_seed_weight(
-    context, reference: str, replicates: tuple[str, ...], analyst: str
+    context: Context, reference: str, replicates: tuple[str, ...], analyst: str
 ) -> None:
     """Record a thousand seed weight determination."""
     station = open_station(context.database)
@@ -179,7 +180,7 @@ def record_seed_weight(
 @seedweight.command("show")
 @click.argument("reference")
 @click.pass_obj
-def show_seed_weight(context, reference: str) -> None:
+def show_seed_weight(context: Context, reference: str) -> None:
     """Every thousand seed weight determination on a lot."""
     station = open_station(context.database)
     station.lots.require(reference)

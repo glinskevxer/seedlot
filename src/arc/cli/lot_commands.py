@@ -2,19 +2,23 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
+from pathlib import Path
 
 import click
 
+from arc.cli.context import Context
+from arc.cli.station import open_station, weight_option
 from arc.errors import RuleBroken
 from arc.lots.model import ContainerKind, LotReference, SeedLot
-from arc.cli.station import open_station, weight_option
+from arc.storage.lots import LotRepository
 from arc.workflow.booking import book_in, split_advice
 
 __all__ = ["lot"]
 
 
-def _repository(database):
+def _repository(database: Path) -> LotRepository:
     return open_station(database).lots
 
 
@@ -43,14 +47,14 @@ def lot() -> None:
 @click.option("--origin", required=True, help="Two letter country code.")
 @click.pass_obj
 def book_in_command(
-    context,
+    context: Context,
     reference: str,
     species: str,
     weight_kg: str,
     containers: str,
     container_count: int,
     merchant: str,
-    sealed_on,
+    sealed_on: datetime,
     origin: str,
 ) -> None:
     """Accept a lot and print the sampling docket."""
@@ -84,7 +88,7 @@ def book_in_command(
 @lot.command("show")
 @click.argument("reference")
 @click.pass_obj
-def show_lot(context, reference: str) -> None:
+def show_lot(context: Context, reference: str) -> None:
     """Everything the station knows about one lot."""
     lots = _repository(context.database)
     found = lots.require(reference)
@@ -109,7 +113,7 @@ def show_lot(context, reference: str) -> None:
 @lot.command("list")
 @click.option("--species", help="Only lots of one species.")
 @click.pass_obj
-def list_lots(context, species: str | None) -> None:
+def list_lots(context: Context, species: str | None) -> None:
     """The lots still open, oldest first."""
     lots = _repository(context.database)
     found = lots.for_species(species) if species else lots.open_lots()

@@ -71,7 +71,9 @@ class StoredMoisture:
         second stage on its own is not a moisture content and must never be
         read as one.
         """
-        return self.combined_percent if self.combined_percent is not None else self.result.percent
+        if self.combined_percent is not None:
+            return self.combined_percent
+        return self.result.percent
 
 
 class MoistureRepository:
@@ -221,7 +223,8 @@ class SeedWeightRepository:
 
     def _to_determination(self, row: sqlite3.Row) -> ThousandSeedWeight:
         replicates = self._connection.execute(
-            "select weight_g from seed_weight_replicate where seed_weight_id = ? order by position",
+            "select weight_g from seed_weight_replicate "
+            "where seed_weight_id = ? order by position",
             (row["id"],),
         ).fetchall()
 

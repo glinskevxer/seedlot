@@ -5,11 +5,11 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from tests.conftest import make_lot
 
 from arc.errors import RuleBroken
 from arc.lots.model import ContainerKind
 from arc.sampling import SamplingRoute, plan_for
-from tests.conftest import make_lot
 
 
 class TestChoosingTheRoute:

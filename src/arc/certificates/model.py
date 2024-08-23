@@ -228,8 +228,10 @@ def check_certificate(certificate: Certificate) -> list[Rule]:
             )
         )
 
-    if results.germination_tested_on is not None:
-        if results.germination_tested_on > certificate.issued_on:
+    if (
+        results.germination_tested_on is not None
+        and results.germination_tested_on > certificate.issued_on
+    ):
             broken.append(
                 Rule(
                     "GERMINATION_AFTER_ISSUE",

@@ -13,39 +13,23 @@ is not the person who would fix a stack trace.
 from __future__ import annotations
 
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import click
 
 from arc import STATION_CODE, STATION_NAME, __version__
+from arc.cli.certificate_commands import certificate
+from arc.cli.context import DEFAULT_DATABASE, Context, pass_context
+from arc.cli.germination_commands import germination
+from arc.cli.lot_commands import lot
+from arc.cli.physical_commands import moisture, seedweight
+from arc.cli.purity_commands import purity
+from arc.cli.report_commands import report
+from arc.cli.species_commands import species
 from arc.errors import ArcError, NotFound, RuleBroken
 
 __all__ = ["cli", "main"]
-
-DEFAULT_DATABASE = Path("var/arc.sqlite3")
-
-
-class Context:
-    """What every command needs, put together once at the top."""
-
-    def __init__(self, database: Path, quiet: bool, today: date) -> None:
-        self.database = database
-        self.quiet = quiet
-        #: The day the work is being recorded against. Normally today, but the
-        #: bench sheets are sometimes typed up the next morning and the dates
-        #: on them have to be the dates the work was actually done.
-        self.today = today
-
-    def say(self, message: str) -> None:
-        if not self.quiet:
-            click.echo(message)
-
-    def warn(self, message: str) -> None:
-        click.echo(message, err=True)
-
-
-pass_context = click.make_pass_decorator(Context)
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
@@ -66,7 +50,9 @@ pass_context = click.make_pass_decorator(Context)
     help="Record the work against this day rather than today.",
 )
 @click.pass_context
-def cli(ctx: click.Context, database: Path, quiet: bool, today) -> None:
+def cli(
+    ctx: click.Context, database: Path, quiet: bool, today: datetime | None
+) -> None:
     """Analysis, reporting and certification for the seed testing station."""
     ctx.obj = Context(
         database=database,
@@ -74,14 +60,6 @@ def cli(ctx: click.Context, database: Path, quiet: bool, today) -> None:
         today=today.date() if today is not None else date.today(),
     )
 
-
-from arc.cli.certificate_commands import certificate
-from arc.cli.germination_commands import germination
-from arc.cli.lot_commands import lot
-from arc.cli.physical_commands import moisture, seedweight
-from arc.cli.purity_commands import purity
-from arc.cli.report_commands import report
-from arc.cli.species_commands import species
 
 cli.add_command(species)
 cli.add_command(lot)

@@ -8,11 +8,12 @@ anything out of a terminal by hand.
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import click
 
+from arc.cli.context import Context
 from arc.cli.station import open_station
 from arc.reporting.registers import certificate_register, merchant_register, work_in_progress
 
@@ -26,7 +27,7 @@ def report() -> None:
 
 @report.command("work")
 @click.pass_obj
-def work(context) -> None:
+def work(context: Context) -> None:
     """What is open, oldest first. The Monday morning list."""
     station = open_station(context.database)
     items = work_in_progress(station.lots, station.certificates)
@@ -53,7 +54,7 @@ def work(context) -> None:
 @report.command("merchant")
 @click.argument("name")
 @click.pass_obj
-def merchant(context, name: str) -> None:
+def merchant(context: Context, name: str) -> None:
     """One merchant's open lots and what has been issued on each."""
     station = open_station(context.database)
     found = merchant_register(station.lots, station.certificates, name)
@@ -93,7 +94,9 @@ def merchant(context, name: str) -> None:
     help="Write to a file rather than the terminal.",
 )
 @click.pass_obj
-def certificates(context, start, end, out: Path | None) -> None:
+def certificates(
+    context: Context, start: datetime, end: datetime, out: Path | None
+) -> None:
     """The certificate register, as the auditor asks for it."""
     station = open_station(context.database)
 
@@ -124,7 +127,7 @@ def certificates(context, start, end, out: Path | None) -> None:
     help="Days ahead to look.",
 )
 @click.pass_obj
-def expiring(context, within: int) -> None:
+def expiring(context: Context, within: int) -> None:
     """Certificates whose germination figure is about to stop being quotable.
 
     A merchant holding a certificate whose germination has lapsed cannot sell

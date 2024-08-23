@@ -6,6 +6,8 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from tests.conftest import make_lot
+from tests.support import open_test_database
 
 from arc.certificates.model import CertificateKind
 from arc.errors import RuleBroken
@@ -16,10 +18,7 @@ from arc.species import register
 from arc.storage.certificates import CertificateRepository
 from arc.storage.determinations import GerminationRepository, PurityRepository
 from arc.storage.lots import LotRepository
-from arc.storage.schema import connect, migrate
-from tests.support import open_test_database
 from arc.workflow.issuing import gather, issue
-from tests.conftest import make_lot
 
 BOOKED = date(2024, 9, 18)
 ISSUED = date(2024, 10, 2)

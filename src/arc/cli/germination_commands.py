@@ -9,10 +9,12 @@ arithmetic.
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import click
 
+from arc.cli.context import Context
 from arc.cli.station import open_station
-from arc.errors import RuleBroken
 from arc.germination.model import GerminationTest, Replicate, check_test
 from arc.germination.outcome import decide
 from arc.germination.tolerance import check_range
@@ -62,12 +64,12 @@ def germination() -> None:
 @click.option("--retest", is_flag=True, help="This is the repeat of an earlier test.")
 @click.pass_obj
 def record(
-    context,
+    context: Context,
     reference: str,
     trays: tuple[str, ...],
     seeds: int,
-    set_down,
-    final_count,
+    set_down: datetime,
+    final_count: datetime,
     analyst: str,
     retest: bool,
 ) -> None:
@@ -107,7 +109,7 @@ def record(
 @germination.command("show")
 @click.argument("reference")
 @click.pass_obj
-def show(context, reference: str) -> None:
+def show(context: Context, reference: str) -> None:
     """Every germination test on a lot, and what the station will report."""
     station = open_station(context.database)
     station.lots.require(reference)
@@ -119,7 +121,10 @@ def show(context, reference: str) -> None:
 
     for index, test in enumerate(tests, start=1):
         marker = " (repeat)" if test.is_retest else ""
-        click.echo(f"{index}. set down {test.set_down_on}, counted {test.final_count_on}{marker}")
+        click.echo(
+            f"{index}. set down {test.set_down_on}, "
+            f"counted {test.final_count_on}{marker}"
+        )
         click.echo(
             "   trays "
             + "  ".join(str(tray.normal) for tray in test.replicates)

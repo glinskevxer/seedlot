@@ -5,6 +5,7 @@ from __future__ import annotations
 import click
 
 from arc.certificates.model import CertificateKind
+from arc.cli.context import Context
 from arc.cli.station import open_station
 from arc.errors import RuleBroken
 from arc.workflow.issuing import gather, issue
@@ -26,7 +27,7 @@ def certificate() -> None:
 @certificate.command("check")
 @click.argument("reference")
 @click.pass_obj
-def check(context, reference: str) -> None:
+def check(context: Context, reference: str) -> None:
     """What the station has on a lot, and whether it is enough to certify."""
     station = open_station(context.database)
     lot = station.lots.require(reference)
@@ -72,7 +73,7 @@ def check(context, reference: str) -> None:
 )
 @click.option("--signed-by", required=True)
 @click.pass_obj
-def issue_command(context, reference: str, kind: str, signed_by: str) -> None:
+def issue_command(context: Context, reference: str, kind: str, signed_by: str) -> None:
     """Issue a certificate for a lot."""
     station = open_station(context.database)
 
@@ -101,7 +102,7 @@ def issue_command(context, reference: str, kind: str, signed_by: str) -> None:
 @certificate.command("show")
 @click.argument("number")
 @click.pass_obj
-def show(context, number: str) -> None:
+def show(context: Context, number: str) -> None:
     """One certificate, as it reads."""
     station = open_station(context.database)
     found = station.certificates.require(number)
@@ -141,7 +142,7 @@ def show(context, number: str) -> None:
 @certificate.command("withdraw")
 @click.argument("number")
 @click.pass_obj
-def withdraw(context, number: str) -> None:
+def withdraw(context: Context, number: str) -> None:
     """Withdraw a certificate. The row stays; somebody holds a copy."""
     station = open_station(context.database)
     station.certificates.withdraw(number, on=context.today)

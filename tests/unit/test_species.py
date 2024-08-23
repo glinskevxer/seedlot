@@ -104,7 +104,13 @@ class TestTheTableItself:
     def test_oily_seed_never_goes_in_the_hot_oven(self) -> None:
         # The oil oxidises and the sample gains weight, which reads as
         # moisture that was never in it.
-        for name in ("Brassica napus", "Linum usitatissimum", "Glycine max", "Helianthus annuus"):
+        oilseeds = (
+            "Brassica napus",
+            "Linum usitatissimum",
+            "Glycine max",
+            "Helianthus annuus",
+        )
+        for name in oilseeds:
             assert register.require(name).moisture.oven.is_low_constant
 
     def test_the_classes_between_them_hold_every_species(self) -> None:
@@ -190,7 +196,9 @@ class TestMethods:
 
     def test_a_predry_makes_the_determination_two_stage(self) -> None:
         one_stage = MoistureMethod(OvenMethod.HIGH_CONSTANT_2H, Grinding.FINE)
-        two_stage = MoistureMethod(OvenMethod.HIGH_CONSTANT_2H, Grinding.FINE, predry_required=True)
+        two_stage = MoistureMethod(
+            OvenMethod.HIGH_CONSTANT_2H, Grinding.FINE, predry_required=True
+        )
 
         assert not one_stage.is_two_stage
         assert two_stage.is_two_stage

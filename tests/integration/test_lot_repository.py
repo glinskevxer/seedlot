@@ -6,13 +6,12 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from tests.conftest import make_lot
+from tests.support import open_test_database
 
 from arc.errors import NotFound
 from arc.lots.model import ContainerKind, LotReference, LotStatus
 from arc.storage.lots import LotRepository
-from arc.storage.schema import connect, migrate
-from tests.support import open_test_database
-from tests.conftest import make_lot
 
 
 @pytest.fixture

@@ -18,8 +18,8 @@ certificate comes back.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Iterable, Sequence
 
 __all__ = [
     "Grams",

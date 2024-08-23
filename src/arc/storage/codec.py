@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from enum import Enum
 from typing import TypeVar
 
 __all__ = [
@@ -65,7 +66,7 @@ def to_bool(value: int) -> bool:
     return bool(value)
 
 
-EnumT = TypeVar("EnumT")
+EnumT = TypeVar("EnumT", bound=Enum)
 
 
 def to_enum(enum_class: type[EnumT], value: str) -> EnumT:
@@ -75,7 +76,7 @@ def to_enum(enum_class: type[EnumT], value: str) -> EnumT:
     appear on the worksheet and a rename of a member should be caught here
     rather than silently reading as something else.
     """
-    for member in enum_class:  # type: ignore[attr-defined]
+    for member in enum_class:
         if member.value == value:
             return member
-    raise ValueError(f"{value!r} is not a {enum_class.__name__}")  # type: ignore[attr-defined]
+    raise ValueError(f"{value!r} is not a {enum_class.__name__}")

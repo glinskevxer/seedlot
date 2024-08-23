@@ -64,7 +64,8 @@ class TestTheMondayList:
 
 class TestOneMerchant:
     def test_a_merchant_with_nothing_says_so(self, worked) -> None:
-        assert "nothing open for Nobody Ltd" in worked("report", "merchant", "Nobody Ltd").output
+        result = worked("report", "merchant", "Nobody Ltd")
+        assert "nothing open for Nobody Ltd" in result.output
 
     def test_it_lists_their_lots_and_certificates(self, worked) -> None:
         output = worked("report", "merchant", "Ravenscar Grain").output

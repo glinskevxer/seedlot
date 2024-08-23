@@ -7,15 +7,14 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from tests.conftest import make_lot
+from tests.support import open_test_database
 
 from arc.germination.model import GerminationTest, Replicate
 from arc.purity.analysis import PurityAnalysis, analyse
 from arc.species import register
 from arc.storage.determinations import GerminationRepository, PurityRepository
 from arc.storage.lots import LotRepository
-from arc.storage.schema import connect, migrate
-from tests.support import open_test_database
-from tests.conftest import make_lot
 
 BOOKED = date(2024, 9, 18)
 
@@ -106,7 +105,11 @@ class TestPurity:
     def test_a_second_analysis_does_not_replace_the_first(self, purity) -> None:
         purity.record("L-2024-0041", an_analysis(pure="118.2"), None, analysed_on=BOOKED)
         purity.record(
-            "L-2024-0041", an_analysis(pure="118.6"), None, analysed_on=BOOKED, is_duplicate=True
+            "L-2024-0041",
+            an_analysis(pure="118.6"),
+            None,
+            analysed_on=BOOKED,
+            is_duplicate=True,
         )
 
         both = purity.for_lot("L-2024-0041")

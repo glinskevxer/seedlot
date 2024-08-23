@@ -15,7 +15,9 @@ from arc.germination.model import (
 )
 
 
-def tray(normal: int, abnormal: int = 0, hard: int = 0, fresh: int = 0, dead: int = 0) -> Replicate:
+def tray(
+    normal: int, abnormal: int = 0, hard: int = 0, fresh: int = 0, dead: int = 0
+) -> Replicate:
     return Replicate(normal=normal, abnormal=abnormal, hard=hard, fresh=fresh, dead=dead)
 
 

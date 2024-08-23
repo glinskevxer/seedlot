@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import date
-from decimal import Decimal
 
 from arc.errors import NotFound
 from arc.lots.model import ContainerKind, LotReference, LotStatus, SeedLot
 from arc.storage.codec import (
-    from_bool,
     to_date,
     to_decimal,
     to_enum,

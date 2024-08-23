@@ -142,7 +142,11 @@ class TestWhatMayBeIssued:
 
     def test_an_orange_one_without_a_purity_is_refused(self) -> None:
         broken = check_certificate(
-            a_certificate(results=full_results(pure_seed=None, other_seed=None, inert_matter=None))
+            a_certificate(
+                results=full_results(
+                    pure_seed=None, other_seed=None, inert_matter=None
+                )
+            )
         )
 
         assert "PURITY_MISSING" in [rule.code for rule in broken]

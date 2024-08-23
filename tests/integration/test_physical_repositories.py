@@ -7,6 +7,8 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from tests.conftest import make_lot
+from tests.support import open_test_database
 
 from arc.moisture.determination import Weighing, combine_stages, moisture_of
 from arc.species import register
@@ -16,10 +18,7 @@ from arc.storage.physical import (
     MoistureStage,
     SeedWeightRepository,
 )
-from arc.storage.schema import connect, migrate
 from arc.weight.thousand_seed import measure
-from tests.conftest import make_lot
-from tests.support import open_test_database
 
 BOOKED = date(2024, 9, 18)
 DETERMINED = date(2024, 9, 25)

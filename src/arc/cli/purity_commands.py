@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import click
 
-from arc.errors import RuleBroken
+from arc.cli.context import Context
 from arc.cli.station import open_station, weight_option
 from arc.purity.analysis import analyse, check_analysis
 from arc.purity.tolerance import compare
@@ -28,7 +28,7 @@ def purity() -> None:
 @click.option("--duplicate", is_flag=True, help="This is the second analysis.")
 @click.pass_obj
 def record(
-    context,
+    context: Context,
     reference: str,
     working: str,
     pure: str,
@@ -80,7 +80,7 @@ def record(
 @purity.command("show")
 @click.argument("reference")
 @click.pass_obj
-def show(context, reference: str) -> None:
+def show(context: Context, reference: str) -> None:
     """Every analysis of one lot, and whether the duplicates agree."""
     station = open_station(context.database)
     lot = station.lots.require(reference)
