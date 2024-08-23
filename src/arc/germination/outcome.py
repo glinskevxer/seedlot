@@ -156,6 +156,4 @@ def decide(first: GerminationTest, second: GerminationTest | None = None) -> Ger
 
 
 def _mean_of(first: int, second: int) -> int:
-    return int(
-        (Decimal(first + second) / 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-    )
+    return int((Decimal(first + second) / 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP))

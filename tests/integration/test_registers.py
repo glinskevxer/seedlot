@@ -196,7 +196,7 @@ class TestOneMerchant:
         lots.save(make_lot(), booked_in_on=BOOKED)
         certificates.issue(a_certificate(serial=187))
 
-        (_, issued), = merchant_register(lots, certificates, "Ravenscar Grain")
+        ((_, issued),) = merchant_register(lots, certificates, "Ravenscar Grain")
 
         assert [str(c.number) for c in issued] == ["GB-0214/2024/00187"]
 

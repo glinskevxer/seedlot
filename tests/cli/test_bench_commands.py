@@ -9,26 +9,42 @@ import pytest
 def booked(run):
     """A wheat lot, booked in and ready to be worked on."""
     run(
-        "lot", "book-in", "L-2024-0041",
-        "--species", "wheat",
-        "--weight", "24000",
-        "--containers", "bag",
-        "--container-count", "480",
-        "--merchant", "Ravenscar Grain",
-        "--sealed-on", "2024-09-12",
-        "--origin", "GB",
+        "lot",
+        "book-in",
+        "L-2024-0041",
+        "--species",
+        "wheat",
+        "--weight",
+        "24000",
+        "--containers",
+        "bag",
+        "--container-count",
+        "480",
+        "--merchant",
+        "Ravenscar Grain",
+        "--sealed-on",
+        "2024-09-12",
+        "--origin",
+        "GB",
     )
     return run
 
 
 def record_purity(run, pure="118.2", other="0.9", inert="0.9", duplicate=False):
     args = [
-        "purity", "record", "L-2024-0041",
-        "--working", "120.0",
-        "--pure", pure,
-        "--other", other,
-        "--inert", inert,
-        "--analyst", "J. Whitfield",
+        "purity",
+        "record",
+        "L-2024-0041",
+        "--working",
+        "120.0",
+        "--pure",
+        pure,
+        "--other",
+        other,
+        "--inert",
+        inert,
+        "--analyst",
+        "J. Whitfield",
     ]
     if duplicate:
         args.append("--duplicate")
@@ -40,9 +56,12 @@ def record_germination(run, *normals, retest=False):
     for count in normals:
         args += ["--tray", f"{count},{100 - count},0,0,0"]
     args += [
-        "--set-down", "2024-09-20",
-        "--final-count", "2024-09-28",
-        "--analyst", "J. Whitfield",
+        "--set-down",
+        "2024-09-20",
+        "--final-count",
+        "2024-09-28",
+        "--analyst",
+        "J. Whitfield",
     ]
     if retest:
         args.append("--retest")
@@ -129,11 +148,17 @@ class TestRecordingGermination:
 
     def test_a_tray_in_the_wrong_shape_is_refused(self, booked) -> None:
         result = booked(
-            "germination", "record", "L-2024-0041",
-            "--tray", "96,4",
-            "--set-down", "2024-09-20",
-            "--final-count", "2024-09-28",
-            "--analyst", "J. Whitfield",
+            "germination",
+            "record",
+            "L-2024-0041",
+            "--tray",
+            "96,4",
+            "--set-down",
+            "2024-09-20",
+            "--final-count",
+            "2024-09-28",
+            "--analyst",
+            "J. Whitfield",
         )
 
         assert result.exit_code != 0
@@ -141,14 +166,23 @@ class TestRecordingGermination:
 
     def test_a_tray_that_does_not_add_up_is_refused(self, booked) -> None:
         result = booked(
-            "germination", "record", "L-2024-0041",
-            "--tray", "96,2,0,0,0",
-            "--tray", "96,4,0,0,0",
-            "--tray", "96,4,0,0,0",
-            "--tray", "96,4,0,0,0",
-            "--set-down", "2024-09-20",
-            "--final-count", "2024-09-28",
-            "--analyst", "J. Whitfield",
+            "germination",
+            "record",
+            "L-2024-0041",
+            "--tray",
+            "96,2,0,0,0",
+            "--tray",
+            "96,4,0,0,0",
+            "--tray",
+            "96,4,0,0,0",
+            "--tray",
+            "96,4,0,0,0",
+            "--set-down",
+            "2024-09-20",
+            "--final-count",
+            "2024-09-28",
+            "--analyst",
+            "J. Whitfield",
         )
 
         assert result.exit_code == 2
@@ -202,9 +236,7 @@ class TestCertificates:
         record_purity(booked)
         record_germination(booked, 96, 95, 97, 96)
 
-        result = booked(
-            "certificate", "issue", "L-2024-0041", "--signed-by", "A. Pearce"
-        )
+        result = booked("certificate", "issue", "L-2024-0041", "--signed-by", "A. Pearce")
 
         assert result.exit_code == 0
         assert "GB-0214/2024/00001" in result.output
@@ -212,9 +244,7 @@ class TestCertificates:
     def test_an_incomplete_lot_is_refused_with_the_reason(self, booked) -> None:
         record_purity(booked)
 
-        result = booked(
-            "certificate", "issue", "L-2024-0041", "--signed-by", "A. Pearce"
-        )
+        result = booked("certificate", "issue", "L-2024-0041", "--signed-by", "A. Pearce")
 
         assert result.exit_code == 2
         assert "germination" in result.output
@@ -223,9 +253,13 @@ class TestCertificates:
         record_purity(booked)
 
         result = booked(
-            "certificate", "issue", "L-2024-0041",
-            "--kind", "green",
-            "--signed-by", "A. Pearce",
+            "certificate",
+            "issue",
+            "L-2024-0041",
+            "--kind",
+            "green",
+            "--signed-by",
+            "A. Pearce",
         )
 
         assert result.exit_code == 0
@@ -244,9 +278,13 @@ class TestCertificates:
     def test_a_withdrawn_certificate_says_so(self, booked) -> None:
         record_purity(booked)
         booked(
-            "certificate", "issue", "L-2024-0041",
-            "--kind", "green",
-            "--signed-by", "A. Pearce",
+            "certificate",
+            "issue",
+            "L-2024-0041",
+            "--kind",
+            "green",
+            "--signed-by",
+            "A. Pearce",
         )
 
         booked("certificate", "withdraw", "GB-0214/2024/00001")

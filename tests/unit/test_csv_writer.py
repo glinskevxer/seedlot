@@ -23,10 +23,10 @@ class TestQuoting:
         assert quote(None) == '""'
 
     def test_a_value_a_spreadsheet_would_run_is_defused(self) -> None:
-        assert quote("=SUM(A1:A9)") == "\"'=SUM(A1:A9)\""
-        assert quote("+441947") == "\"'+441947\""
-        assert quote("-12") == "\"'-12\""
-        assert quote("@ravenscar") == "\"'@ravenscar\""
+        assert quote("=SUM(A1:A9)") == '"\'=SUM(A1:A9)"'
+        assert quote("+441947") == '"\'+441947"'
+        assert quote("-12") == '"\'-12"'
+        assert quote("@ravenscar") == '"\'@ravenscar"'
 
     def test_an_ordinary_value_is_left_exactly_as_it_was(self) -> None:
         assert quote("Triticum aestivum") == '"Triticum aestivum"'

@@ -76,8 +76,7 @@ def record_germination(station, *normals: int, is_retest: bool = False) -> None:
             lot_reference="L-2024-0041",
             species_name="Triticum aestivum",
             replicates=tuple(
-                Replicate(normal=n, abnormal=100 - n, hard=0, fresh=0, dead=0)
-                for n in normals
+                Replicate(normal=n, abnormal=100 - n, hard=0, fresh=0, dead=0) for n in normals
             ),
             seeds_per_replicate=100,
             set_down_on=date(2024, 9, 20),
@@ -126,9 +125,7 @@ class TestGathering:
         assert gathered.results.germination_percent == 96
         assert gathered.results.germination_tested_on == date(2024, 9, 28)
 
-    def test_an_unsettled_germination_is_a_problem_rather_than_a_figure(
-        self, station
-    ) -> None:
+    def test_an_unsettled_germination_is_a_problem_rather_than_a_figure(self, station) -> None:
         record_germination(station, 99, 96, 92, 87)
 
         gathered = gather(
@@ -295,9 +292,7 @@ class TestIssuing:
         assert station.certificates.for_lot("L-2024-0041") == ()
         assert station.lots.require("L-2024-0041").status is LotStatus.IN_TEST
 
-    def test_the_second_certificate_of_the_year_takes_the_next_number(
-        self, station
-    ) -> None:
+    def test_the_second_certificate_of_the_year_takes_the_next_number(self, station) -> None:
         record_purity(station)
 
         first = issue(

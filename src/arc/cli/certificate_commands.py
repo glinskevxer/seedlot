@@ -52,9 +52,7 @@ def check(context: Context, reference: str) -> None:
     if gathered.results.moisture_percent is not None:
         click.echo(f"  moisture    {gathered.results.moisture_percent} percent")
     if gathered.results.thousand_seed_weight_g is not None:
-        click.echo(
-            f"  seed weight {gathered.results.thousand_seed_weight_g} g per thousand"
-        )
+        click.echo(f"  seed weight {gathered.results.thousand_seed_weight_g} g per thousand")
 
     if gathered.is_ready:
         click.echo("  ready to certify")

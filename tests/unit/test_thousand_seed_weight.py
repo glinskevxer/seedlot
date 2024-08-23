@@ -36,9 +36,7 @@ class TestTheLimit:
 
 
 class TestTheDetermination:
-    def test_the_thousand_seed_weight_is_ten_times_the_mean_of_a_hundred(
-        self, wheat
-    ) -> None:
+    def test_the_thousand_seed_weight_is_ten_times_the_mean_of_a_hundred(self, wheat) -> None:
         result = measure(TIDY, wheat)
 
         assert result.grams_per_thousand == Decimal("45.0")

@@ -50,9 +50,7 @@ __all__ = ["cli", "main"]
     help="Record the work against this day rather than today.",
 )
 @click.pass_context
-def cli(
-    ctx: click.Context, database: Path, quiet: bool, today: datetime | None
-) -> None:
+def cli(ctx: click.Context, database: Path, quiet: bool, today: datetime | None) -> None:
     """Analysis, reporting and certification for the seed testing station."""
     ctx.obj = Context(
         database=database,

@@ -75,9 +75,7 @@ class TestLookingThingsUp:
 
         assert "L-2024-9999" in str(caught.value)
 
-    def test_saving_the_same_reference_twice_updates_rather_than_duplicates(
-        self, lots
-    ) -> None:
+    def test_saving_the_same_reference_twice_updates_rather_than_duplicates(self, lots) -> None:
         lot = make_lot()
         lots.save(lot, booked_in_on=BOOKED)
 

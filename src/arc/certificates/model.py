@@ -232,12 +232,12 @@ def check_certificate(certificate: Certificate) -> list[Rule]:
         results.germination_tested_on is not None
         and results.germination_tested_on > certificate.issued_on
     ):
-            broken.append(
-                Rule(
-                    "GERMINATION_AFTER_ISSUE",
-                    "the germination is dated after the certificate was issued",
-                    subject,
-                )
+        broken.append(
+            Rule(
+                "GERMINATION_AFTER_ISSUE",
+                "the germination is dated after the certificate was issued",
+                subject,
             )
+        )
 
     return broken

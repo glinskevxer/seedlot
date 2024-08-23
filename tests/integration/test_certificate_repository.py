@@ -121,9 +121,7 @@ class TestIssuing:
         with pytest.raises(sqlite3.IntegrityError):
             certificates.issue(a_certificate())
 
-    def test_a_certificate_for_a_lot_that_does_not_exist_is_refused(
-        self, certificates
-    ) -> None:
+    def test_a_certificate_for_a_lot_that_does_not_exist_is_refused(self, certificates) -> None:
         orphan = Certificate(
             number=CertificateNumber("GB-0214", 2024, 900),
             kind=CertificateKind.GREEN_ANALYSIS,
@@ -168,9 +166,7 @@ class TestWithdrawing:
         assert found.is_withdrawn
         assert found.withdrawn_on == date(2024, 11, 1)
 
-    def test_withdrawing_one_that_is_already_withdrawn_is_refused(
-        self, certificates
-    ) -> None:
+    def test_withdrawing_one_that_is_already_withdrawn_is_refused(self, certificates) -> None:
         certificates.issue(a_certificate())
         certificates.withdraw("GB-0214/2024/00187", on=date(2024, 11, 1))
 

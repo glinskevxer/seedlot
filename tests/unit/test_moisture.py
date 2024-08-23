@@ -89,9 +89,7 @@ class TestWhetherASecondStageIsNeeded:
     def test_a_dry_cereal_does_not(self, wheat) -> None:
         assert not needs_predrying(moisture_of(weighing()), wheat)
 
-    def test_seed_that_is_never_ground_is_never_predried_however_wet(
-        self, ryegrass
-    ) -> None:
+    def test_seed_that_is_never_ground_is_never_predried_however_wet(self, ryegrass) -> None:
         # Nothing to smear, so nothing to predry for.
         wet = moisture_of(weighing(dry="20.000"))
 

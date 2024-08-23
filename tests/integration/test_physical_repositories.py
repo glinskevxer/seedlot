@@ -51,8 +51,7 @@ def weighing(container="12.000", wet="22.000", dry="20.600") -> Weighing:
 
 
 TIDY = tuple(
-    Decimal(value)
-    for value in ("4.51", "4.48", "4.52", "4.49", "4.50", "4.53", "4.47", "4.50")
+    Decimal(value) for value in ("4.51", "4.48", "4.52", "4.49", "4.50", "4.53", "4.47", "4.50")
 )
 
 
@@ -102,12 +101,20 @@ class TestMoisture:
         combined = combine_stages(predry.percent, second.percent)
 
         moisture.record(
-            "L-2024-0041", weighing(dry="21.500"), predry,
-            analyst="J. W.", determined_on=DETERMINED, stage=MoistureStage.PREDRY,
+            "L-2024-0041",
+            weighing(dry="21.500"),
+            predry,
+            analyst="J. W.",
+            determined_on=DETERMINED,
+            stage=MoistureStage.PREDRY,
         )
         moisture.record(
-            "L-2024-0041", weighing(dry="20.600"), second,
-            analyst="J. W.", determined_on=DETERMINED, stage=MoistureStage.SECOND,
+            "L-2024-0041",
+            weighing(dry="20.600"),
+            second,
+            analyst="J. W.",
+            determined_on=DETERMINED,
+            stage=MoistureStage.SECOND,
             combined_percent=combined,
         )
 
@@ -119,12 +126,20 @@ class TestMoisture:
         # A second stage row with no combination on it is arithmetic in
         # progress, and reporting it would understate a wet sample badly.
         moisture.record(
-            "L-2024-0041", weighing(dry="21.500"), moisture_of(weighing(dry="21.500")),
-            analyst="J. W.", determined_on=DETERMINED, stage=MoistureStage.PREDRY,
+            "L-2024-0041",
+            weighing(dry="21.500"),
+            moisture_of(weighing(dry="21.500")),
+            analyst="J. W.",
+            determined_on=DETERMINED,
+            stage=MoistureStage.PREDRY,
         )
         moisture.record(
-            "L-2024-0041", weighing(dry="20.600"), moisture_of(weighing(dry="20.600")),
-            analyst="J. W.", determined_on=DETERMINED, stage=MoistureStage.SECOND,
+            "L-2024-0041",
+            weighing(dry="20.600"),
+            moisture_of(weighing(dry="20.600")),
+            analyst="J. W.",
+            determined_on=DETERMINED,
+            stage=MoistureStage.SECOND,
         )
 
         assert moisture.reportable_for_lot("L-2024-0041") == Decimal("5.0")
@@ -134,9 +149,7 @@ class TestMoisture:
         assert MoistureStage.PREDRY.is_part_of_a_pair
         assert MoistureStage.SECOND.is_part_of_a_pair
 
-    def test_a_determination_of_a_lot_that_does_not_exist_is_refused(
-        self, moisture
-    ) -> None:
+    def test_a_determination_of_a_lot_that_does_not_exist_is_refused(self, moisture) -> None:
         with pytest.raises(sqlite3.IntegrityError):
             moisture.record(
                 "L-2024-9999",
@@ -148,9 +161,7 @@ class TestMoisture:
 
 
 class TestSeedWeight:
-    def test_a_determination_comes_back_with_its_eight_replicates(
-        self, seed_weight
-    ) -> None:
+    def test_a_determination_comes_back_with_its_eight_replicates(self, seed_weight) -> None:
         wheat = register.require("wheat")
 
         seed_weight.record(
@@ -166,9 +177,7 @@ class TestSeedWeight:
         wheat = register.require("wheat")
         original = measure(TIDY, wheat)
 
-        seed_weight.record(
-            "L-2024-0041", original, analyst="J. W.", determined_on=DETERMINED
-        )
+        seed_weight.record("L-2024-0041", original, analyst="J. W.", determined_on=DETERMINED)
         stored = seed_weight.latest_for_lot("L-2024-0041")
 
         assert stored is not None

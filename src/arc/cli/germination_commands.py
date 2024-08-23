@@ -122,8 +122,7 @@ def show(context: Context, reference: str) -> None:
     for index, test in enumerate(tests, start=1):
         marker = " (repeat)" if test.is_retest else ""
         click.echo(
-            f"{index}. set down {test.set_down_on}, "
-            f"counted {test.final_count_on}{marker}"
+            f"{index}. set down {test.set_down_on}, " f"counted {test.final_count_on}{marker}"
         )
         click.echo(
             "   trays "

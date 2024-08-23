@@ -116,9 +116,7 @@ def gather(
                 )
             )
 
-    moisture_percent = (
-        None if moisture is None else moisture.reportable_for_lot(lot_reference)
-    )
+    moisture_percent = None if moisture is None else moisture.reportable_for_lot(lot_reference)
 
     thousand_seed_weight = None
     if seed_weight is not None:
@@ -214,4 +212,3 @@ def _station_code() -> str:
     from arc import STATION_CODE
 
     return STATION_CODE
-

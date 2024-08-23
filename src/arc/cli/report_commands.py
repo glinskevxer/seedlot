@@ -94,9 +94,7 @@ def merchant(context: Context, name: str) -> None:
     help="Write to a file rather than the terminal.",
 )
 @click.pass_obj
-def certificates(
-    context: Context, start: datetime, end: datetime, out: Path | None
-) -> None:
+def certificates(context: Context, start: datetime, end: datetime, out: Path | None) -> None:
     """The certificate register, as the auditor asks for it."""
     station = open_station(context.database)
 
@@ -140,9 +138,7 @@ def expiring(context: Context, within: int) -> None:
     horizon = context.today + timedelta(days=within)
 
     found = []
-    for issued in station.certificates.issued_between(
-        date(2000, 1, 1), context.today
-    ):
+    for issued in station.certificates.issued_between(date(2000, 1, 1), context.today):
         expires = issued.germination_valid_until()
         if expires is None or issued.is_withdrawn:
             continue

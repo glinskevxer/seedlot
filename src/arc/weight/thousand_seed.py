@@ -59,9 +59,7 @@ class ThousandSeedWeight:
     @property
     def grams_per_thousand(self) -> Decimal:
         """The figure the certificate carries, to one decimal place."""
-        return (self.mean_g * Decimal(10)).quantize(
-            Decimal("0.1"), rounding=ROUND_HALF_UP
-        )
+        return (self.mean_g * Decimal(10)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 
     @property
     def within_tolerance(self) -> bool:
@@ -94,9 +92,7 @@ def measure(weights_g: tuple[Decimal, ...], species: Species) -> ThousandSeedWei
     variance = squared_error / (count - 1)
     deviation = variance.sqrt()
 
-    cv = (deviation / mean * Decimal(100)).quantize(
-        Decimal("0.1"), rounding=ROUND_HALF_UP
-    )
+    cv = (deviation / mean * Decimal(100)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 
     return ThousandSeedWeight(
         replicate_weights_g=weights_g,

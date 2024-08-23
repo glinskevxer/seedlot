@@ -5,17 +5,36 @@ from __future__ import annotations
 import pytest
 
 
-def book(run, *, reference="L-2024-0041", species="wheat", weight="24000", containers="bag",
-         count="480", merchant="Ravenscar Grain", sealed="2024-09-12", origin="GB"):
+def book(
+    run,
+    *,
+    reference="L-2024-0041",
+    species="wheat",
+    weight="24000",
+    containers="bag",
+    count="480",
+    merchant="Ravenscar Grain",
+    sealed="2024-09-12",
+    origin="GB",
+):
     return run(
-        "lot", "book-in", reference,
-        "--species", species,
-        "--weight", weight,
-        "--containers", containers,
-        "--container-count", count,
-        "--merchant", merchant,
-        "--sealed-on", sealed,
-        "--origin", origin,
+        "lot",
+        "book-in",
+        reference,
+        "--species",
+        species,
+        "--weight",
+        weight,
+        "--containers",
+        containers,
+        "--container-count",
+        count,
+        "--merchant",
+        merchant,
+        "--sealed-on",
+        sealed,
+        "--origin",
+        origin,
     )
 
 
@@ -67,9 +86,7 @@ class TestBookingIn:
 
         assert "nothing open" in run("lot", "list").output
 
-    def test_a_weight_that_is_not_a_number_is_refused_before_anything_else(
-        self, run
-    ) -> None:
+    def test_a_weight_that_is_not_a_number_is_refused_before_anything_else(self, run) -> None:
         result = book(run, weight="lots")
 
         assert result.exit_code != 0

@@ -118,9 +118,7 @@ def combine_stages(predry_percent: Decimal, second_percent: Decimal) -> Decimal:
             raise ValueError(f"a moisture content runs from 0 to 100, not {value}")
 
     combined = (
-        predry_percent
-        + second_percent
-        - (predry_percent * second_percent / Decimal(100))
+        predry_percent + second_percent - (predry_percent * second_percent / Decimal(100))
     )
     return combined.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 

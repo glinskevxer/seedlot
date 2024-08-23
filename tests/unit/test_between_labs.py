@@ -104,9 +104,7 @@ class TestComparingGerminations:
         assert compare_germination(97, 91).verdict is RefereeVerdict.REFER
 
     def test_the_order_the_two_are_given_in_does_not_change_the_verdict(self) -> None:
-        assert (
-            compare_germination(96, 80).verdict is compare_germination(80, 96).verdict
-        )
+        assert compare_germination(96, 80).verdict is compare_germination(80, 96).verdict
 
     def test_the_explanation_names_both_results_and_what_follows(self) -> None:
         explained = compare_germination(96, 80).explain()

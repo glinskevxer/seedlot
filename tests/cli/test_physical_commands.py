@@ -8,11 +8,23 @@ import pytest
 @pytest.fixture
 def booked(run):
     run(
-        "lot", "book-in", "L-2024-0041",
-        "--species", "wheat", "--weight", "24000",
-        "--containers", "bag", "--container-count", "480",
-        "--merchant", "Ravenscar Grain",
-        "--sealed-on", "2024-09-12", "--origin", "GB",
+        "lot",
+        "book-in",
+        "L-2024-0041",
+        "--species",
+        "wheat",
+        "--weight",
+        "24000",
+        "--containers",
+        "bag",
+        "--container-count",
+        "480",
+        "--merchant",
+        "Ravenscar Grain",
+        "--sealed-on",
+        "2024-09-12",
+        "--origin",
+        "GB",
     )
     return run
 
@@ -20,20 +32,40 @@ def booked(run):
 @pytest.fixture
 def grass_booked(run):
     run(
-        "lot", "book-in", "L-2024-0077",
-        "--species", "perennial ryegrass", "--weight", "8000",
-        "--containers", "bag", "--container-count", "320",
-        "--merchant", "Scarborough Seeds",
-        "--sealed-on", "2024-09-14", "--origin", "GB",
+        "lot",
+        "book-in",
+        "L-2024-0077",
+        "--species",
+        "perennial ryegrass",
+        "--weight",
+        "8000",
+        "--containers",
+        "bag",
+        "--container-count",
+        "320",
+        "--merchant",
+        "Scarborough Seeds",
+        "--sealed-on",
+        "2024-09-14",
+        "--origin",
+        "GB",
     )
     return run
 
 
 def record_moisture(run, dry="20.600", stage=None, predry=None, reference="L-2024-0041"):
     args = [
-        "moisture", "record", reference,
-        "--container", "12.000", "--wet", "22.000", "--dry", dry,
-        "--analyst", "J. Whitfield",
+        "moisture",
+        "record",
+        reference,
+        "--container",
+        "12.000",
+        "--wet",
+        "22.000",
+        "--dry",
+        dry,
+        "--analyst",
+        "J. Whitfield",
     ]
     if stage:
         args += ["--stage", stage]
@@ -153,17 +185,31 @@ class TestSeedWeight:
 class TestOnTheCertificate:
     def test_both_figures_reach_the_certificate(self, booked) -> None:
         booked(
-            "purity", "record", "L-2024-0041",
-            "--working", "120.0", "--pure", "118.2",
-            "--other", "0.9", "--inert", "0.9",
-            "--analyst", "J. Whitfield",
+            "purity",
+            "record",
+            "L-2024-0041",
+            "--working",
+            "120.0",
+            "--pure",
+            "118.2",
+            "--other",
+            "0.9",
+            "--inert",
+            "0.9",
+            "--analyst",
+            "J. Whitfield",
         )
         record_moisture(booked)
         record_seed_weight(booked)
 
         booked(
-            "certificate", "issue", "L-2024-0041",
-            "--kind", "green", "--signed-by", "A. Pearce",
+            "certificate",
+            "issue",
+            "L-2024-0041",
+            "--kind",
+            "green",
+            "--signed-by",
+            "A. Pearce",
         )
         shown = booked("certificate", "show", "GB-0214/2024/00001")
 
@@ -172,16 +218,30 @@ class TestOnTheCertificate:
 
     def test_a_scattered_seed_weight_stops_the_certificate(self, booked) -> None:
         booked(
-            "purity", "record", "L-2024-0041",
-            "--working", "120.0", "--pure", "118.2",
-            "--other", "0.9", "--inert", "0.9",
-            "--analyst", "J. Whitfield",
+            "purity",
+            "record",
+            "L-2024-0041",
+            "--working",
+            "120.0",
+            "--pure",
+            "118.2",
+            "--other",
+            "0.9",
+            "--inert",
+            "0.9",
+            "--analyst",
+            "J. Whitfield",
         )
         record_seed_weight(booked, SCATTERED)
 
         result = booked(
-            "certificate", "issue", "L-2024-0041",
-            "--kind", "green", "--signed-by", "A. Pearce",
+            "certificate",
+            "issue",
+            "L-2024-0041",
+            "--kind",
+            "green",
+            "--signed-by",
+            "A. Pearce",
         )
 
         assert result.exit_code == 2

@@ -75,8 +75,6 @@ def show_species(name: str) -> None:
     )
     if germination.needs_prechill:
         click.echo(f"  prechill              {germination.prechill_days} days")
-    click.echo(
-        f"  moisture              {moisture.oven.value}, {moisture.grinding.value}"
-    )
+    click.echo(f"  moisture              {moisture.oven.value}, {moisture.grinding.value}")
     if found.aliases:
         click.echo(f"  also called           {', '.join(found.aliases)}")

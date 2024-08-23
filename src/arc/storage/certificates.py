@@ -45,9 +45,7 @@ def results_to_json(results: Determinations) -> str:
     payload: dict[str, object] = {
         "pure_seed": None if results.pure_seed is None else str(results.pure_seed),
         "other_seed": None if results.other_seed is None else str(results.other_seed),
-        "inert_matter": None
-        if results.inert_matter is None
-        else str(results.inert_matter),
+        "inert_matter": None if results.inert_matter is None else str(results.inert_matter),
         "germination_percent": results.germination_percent,
         "germination_tested_on": None
         if results.germination_tested_on is None

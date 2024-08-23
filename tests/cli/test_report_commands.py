@@ -12,28 +12,66 @@ import pytest
 def worked(run, tmp_path):
     """A station with one lot certified and one still on the bench."""
     run(
-        "lot", "book-in", "L-2024-0041",
-        "--species", "wheat", "--weight", "24000",
-        "--containers", "bag", "--container-count", "480",
-        "--merchant", "Ravenscar Grain",
-        "--sealed-on", "2024-09-12", "--origin", "GB",
+        "lot",
+        "book-in",
+        "L-2024-0041",
+        "--species",
+        "wheat",
+        "--weight",
+        "24000",
+        "--containers",
+        "bag",
+        "--container-count",
+        "480",
+        "--merchant",
+        "Ravenscar Grain",
+        "--sealed-on",
+        "2024-09-12",
+        "--origin",
+        "GB",
     )
     run(
-        "lot", "book-in", "L-2024-0077",
-        "--species", "perennial ryegrass", "--weight", "8000",
-        "--containers", "bag", "--container-count", "320",
-        "--merchant", "Scarborough Seeds",
-        "--sealed-on", "2024-09-14", "--origin", "GB",
+        "lot",
+        "book-in",
+        "L-2024-0077",
+        "--species",
+        "perennial ryegrass",
+        "--weight",
+        "8000",
+        "--containers",
+        "bag",
+        "--container-count",
+        "320",
+        "--merchant",
+        "Scarborough Seeds",
+        "--sealed-on",
+        "2024-09-14",
+        "--origin",
+        "GB",
     )
     run(
-        "purity", "record", "L-2024-0041",
-        "--working", "120.0", "--pure", "118.2",
-        "--other", "0.9", "--inert", "0.9",
-        "--analyst", "J. Whitfield",
+        "purity",
+        "record",
+        "L-2024-0041",
+        "--working",
+        "120.0",
+        "--pure",
+        "118.2",
+        "--other",
+        "0.9",
+        "--inert",
+        "0.9",
+        "--analyst",
+        "J. Whitfield",
     )
     run(
-        "certificate", "issue", "L-2024-0041",
-        "--kind", "green", "--signed-by", "A. Pearce",
+        "certificate",
+        "issue",
+        "L-2024-0041",
+        "--kind",
+        "green",
+        "--signed-by",
+        "A. Pearce",
     )
     return run
 
@@ -106,9 +144,7 @@ class TestTheCertificateRegister:
         assert output.startswith('"number"')
 
     def test_a_range_that_ends_before_it_starts_is_refused(self, worked) -> None:
-        result = worked(
-            "report", "certificates", "--from", "2024-11-01", "--to", "2024-10-01"
-        )
+        result = worked("report", "certificates", "--from", "2024-11-01", "--to", "2024-10-01")
 
         assert result.exit_code != 0
         assert "ends before it starts" in result.output
@@ -141,24 +177,57 @@ class TestExpiringGerminations:
 
     def test_a_germination_is_listed_once_it_comes_into_range(self, run) -> None:
         run(
-            "lot", "book-in", "L-2024-0041",
-            "--species", "wheat", "--weight", "24000",
-            "--containers", "bag", "--container-count", "480",
-            "--merchant", "Ravenscar Grain",
-            "--sealed-on", "2024-09-12", "--origin", "GB",
+            "lot",
+            "book-in",
+            "L-2024-0041",
+            "--species",
+            "wheat",
+            "--weight",
+            "24000",
+            "--containers",
+            "bag",
+            "--container-count",
+            "480",
+            "--merchant",
+            "Ravenscar Grain",
+            "--sealed-on",
+            "2024-09-12",
+            "--origin",
+            "GB",
         )
         run(
-            "purity", "record", "L-2024-0041",
-            "--working", "120.0", "--pure", "118.2",
-            "--other", "0.9", "--inert", "0.9",
-            "--analyst", "J. Whitfield",
+            "purity",
+            "record",
+            "L-2024-0041",
+            "--working",
+            "120.0",
+            "--pure",
+            "118.2",
+            "--other",
+            "0.9",
+            "--inert",
+            "0.9",
+            "--analyst",
+            "J. Whitfield",
         )
         run(
-            "germination", "record", "L-2024-0041",
-            "--tray", "96,4,0,0,0", "--tray", "95,5,0,0,0",
-            "--tray", "97,3,0,0,0", "--tray", "96,4,0,0,0",
-            "--set-down", "2024-09-20", "--final-count", "2024-09-28",
-            "--analyst", "J. Whitfield",
+            "germination",
+            "record",
+            "L-2024-0041",
+            "--tray",
+            "96,4,0,0,0",
+            "--tray",
+            "95,5,0,0,0",
+            "--tray",
+            "97,3,0,0,0",
+            "--tray",
+            "96,4,0,0,0",
+            "--set-down",
+            "2024-09-20",
+            "--final-count",
+            "2024-09-28",
+            "--analyst",
+            "J. Whitfield",
         )
         run("certificate", "issue", "L-2024-0041", "--signed-by", "A. Pearce")
 

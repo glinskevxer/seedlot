@@ -21,9 +21,7 @@ def db(tmp_path):
 
 
 def table_names(connection: sqlite3.Connection) -> set[str]:
-    rows = connection.execute(
-        "select name from sqlite_master where type = 'table'"
-    ).fetchall()
+    rows = connection.execute("select name from sqlite_master where type = 'table'").fetchall()
     return {row["name"] for row in rows}
 
 

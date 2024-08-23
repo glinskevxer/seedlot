@@ -186,8 +186,7 @@ class Species:
     def names(self) -> tuple[str, ...]:
         """Everything this species answers to, lower cased."""
         return tuple(
-            name.lower()
-            for name in (self.botanical_name, self.common_name, *self.aliases)
+            name.lower() for name in (self.botanical_name, self.common_name, *self.aliases)
         )
 
     def __str__(self) -> str:

@@ -116,9 +116,7 @@ def compare_germination(ours: int, theirs: int) -> Referee:
         ours=Decimal(ours),
         theirs=Decimal(theirs),
         allowance=Decimal(allowance),
-        verdict=RefereeVerdict.AGREE
-        if difference <= allowance
-        else RefereeVerdict.REFER,
+        verdict=RefereeVerdict.AGREE if difference <= allowance else RefereeVerdict.REFER,
     )
 
 
@@ -132,9 +130,7 @@ def compare_purity(ours: Decimal, theirs: Decimal, *, chaffy: bool) -> Referee:
         ours=ours,
         theirs=theirs,
         allowance=allowance,
-        verdict=RefereeVerdict.AGREE
-        if difference <= allowance
-        else RefereeVerdict.REFER,
+        verdict=RefereeVerdict.AGREE if difference <= allowance else RefereeVerdict.REFER,
     )
 
 
