@@ -190,6 +190,38 @@ MIGRATIONS: tuple[Migration, ...] = (
             "create index seed_weight_lot_idx on seed_weight (lot_reference)",
         ),
     ),
+    Migration(
+        version=5,
+        name="other seed searches",
+        statements=(
+            """
+            create table other_seed_search (
+                id              integer primary key autoincrement,
+                lot_reference   text not null references lot (reference),
+                species_name    text not null,
+                kind            text not null,
+                weight_examined_g text not null,
+                sought          text not null default '',
+                analyst         text not null,
+                searched_on     text not null,
+                constraint other_seed_kind_ck
+                    check (kind in ('complete', 'limited', 'reduced'))
+            )
+            """,
+            """
+            create table other_seed_finding (
+                id           integer primary key autoincrement,
+                search_id    integer not null
+                    references other_seed_search (id) on delete cascade,
+                species_name text not null,
+                count        integer not null,
+                constraint other_seed_count_ck check (count >= 0),
+                unique (search_id, species_name)
+            )
+            """,
+            "create index other_seed_lot_idx on other_seed_search (lot_reference)",
+        ),
+    ),
 )
 
 
