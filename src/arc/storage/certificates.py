@@ -27,6 +27,8 @@ from arc.certificates.model import (
     CertificateKind,
     CertificateNumber,
     Determinations,
+    OtherSeedCount,
+    OtherSeedReport,
 )
 from arc.errors import NotFound
 from arc.quantities import Percentage
@@ -57,7 +59,21 @@ def results_to_json(results: Determinations) -> str:
         "thousand_seed_weight_g": None
         if results.thousand_seed_weight_g is None
         else to_text(results.thousand_seed_weight_g),
-        "other_species_found": list(results.other_species_found),
+        "other_seed_report": None
+        if results.other_seed_report is None
+        else {
+            "kind": results.other_seed_report.kind,
+            "weight_examined_g": to_text(results.other_seed_report.weight_examined_g),
+            "sought": list(results.other_seed_report.sought),
+            "counts": [
+                {
+                    "species_name": found.species_name,
+                    "count": found.count,
+                    "per_kg": to_text(found.per_kg),
+                }
+                for found in results.other_seed_report.counts
+            ],
+        },
     }
     return json.dumps(payload, sort_keys=True)
 
@@ -75,6 +91,24 @@ def results_from_json(text: str) -> Determinations:
 
     tested_on = payload.get("germination_tested_on")
 
+    def other_seed_report() -> OtherSeedReport | None:
+        raw = payload.get("other_seed_report")
+        if raw is None:
+            return None
+        return OtherSeedReport(
+            kind=raw["kind"],
+            weight_examined_g=to_decimal(raw["weight_examined_g"]),
+            counts=tuple(
+                OtherSeedCount(
+                    species_name=found["species_name"],
+                    count=int(found["count"]),
+                    per_kg=to_decimal(found["per_kg"]),
+                )
+                for found in raw.get("counts", ())
+            ),
+            sought=tuple(raw.get("sought", ())),
+        )
+
     return Determinations(
         pure_seed=percentage("pure_seed"),
         other_seed=percentage("other_seed"),
@@ -84,7 +118,7 @@ def results_from_json(text: str) -> Determinations:
         hard_seed_percent=payload.get("hard_seed_percent"),
         moisture_percent=decimal("moisture_percent"),
         thousand_seed_weight_g=decimal("thousand_seed_weight_g"),
-        other_species_found=tuple(payload.get("other_species_found", ())),
+        other_seed_report=other_seed_report(),
     )
 
 

@@ -15,6 +15,8 @@ from arc.certificates.model import (
     CertificateKind,
     CertificateNumber,
     Determinations,
+    OtherSeedCount,
+    OtherSeedReport,
 )
 from arc.errors import NotFound
 from arc.quantities import Percentage
@@ -45,7 +47,11 @@ def full_results() -> Determinations:
         germination_tested_on=date(2024, 9, 28),
         moisture_percent=Decimal("14.0"),
         thousand_seed_weight_g=Decimal("45.0"),
-        other_species_found=("Avena fatua",),
+        other_seed_report=OtherSeedReport(
+            kind="complete",
+            weight_examined_g=Decimal("1200.0"),
+            counts=(OtherSeedCount("Avena fatua", 4, Decimal("3.3")),),
+        ),
     )
 
 
@@ -98,7 +104,13 @@ class TestTheResultsColumn:
     def test_the_other_species_come_back_as_a_tuple(self) -> None:
         recovered = results_from_json(results_to_json(full_results()))
 
-        assert recovered.other_species_found == ("Avena fatua",)
+        report = recovered.other_seed_report
+        assert report is not None
+        assert report.kind == "complete"
+        assert report.weight_examined_g == Decimal("1200.0")
+        assert report.counts[0].species_name == "Avena fatua"
+        assert report.counts[0].count == 4
+        assert report.counts[0].per_kg == Decimal("3.3")
 
 
 class TestIssuing:

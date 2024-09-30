@@ -30,6 +30,8 @@ from arc.quantities import Percentage
 __all__ = [
     "CertificateKind",
     "CertificateNumber",
+    "OtherSeedCount",
+    "OtherSeedReport",
     "Determinations",
     "Certificate",
     "GERMINATION_VALID_FOR",
@@ -99,6 +101,51 @@ class CertificateNumber:
 
 
 @dataclass(frozen=True)
+class OtherSeedCount:
+    """One species found by number, and what that comes to per kilogram."""
+
+    species_name: str
+    count: int
+    per_kg: Decimal
+
+
+@dataclass(frozen=True)
+class OtherSeedReport:
+    """A search for other species, as it goes on the certificate.
+
+    The weight examined travels with the counts because without it they are
+    not a result. Two seeds found in a fifth of a working sample and two found
+    in a whole one are different pieces of evidence about the same lot, and the
+    buyer is the one who has to be able to tell them apart.
+    """
+
+    kind: str
+    weight_examined_g: Decimal
+    counts: tuple[OtherSeedCount, ...] = ()
+    sought: tuple[str, ...] = ()
+
+    @property
+    def is_nil(self) -> bool:
+        return all(found.count == 0 for found in self.counts)
+
+    @property
+    def is_complete(self) -> bool:
+        return self.kind == "complete"
+
+    def line(self) -> str:
+        """The sentence printed under the purity figures."""
+        if self.is_nil:
+            body = "none found"
+        else:
+            body = ", ".join(
+                f"{found.species_name} {found.count}"
+                for found in self.counts
+                if found.count > 0
+            )
+        return f"{body} in {self.weight_examined_g} g, {self.kind} search"
+
+
+@dataclass(frozen=True)
 class Determinations:
     """What was determined. Anything not determined is absent, never zero.
 
@@ -115,7 +162,7 @@ class Determinations:
     hard_seed_percent: int | None = None
     moisture_percent: Decimal | None = None
     thousand_seed_weight_g: Decimal | None = None
-    other_species_found: tuple[str, ...] = ()
+    other_seed_report: OtherSeedReport | None = None
 
     @property
     def has_purity(self) -> bool:
@@ -136,6 +183,8 @@ class Determinations:
             done.append("moisture")
         if self.thousand_seed_weight_g is not None:
             done.append("thousand seed weight")
+        if self.other_seed_report is not None:
+            done.append("other seed by number")
         return tuple(done)
 
 
@@ -227,6 +276,59 @@ def check_certificate(certificate: Certificate) -> list[Rule]:
                 subject,
             )
         )
+
+    report = results.other_seed_report
+    if report is not None:
+        if not results.has_purity:
+            broken.append(
+                Rule(
+                    "OTHER_SEED_WITHOUT_PURITY",
+                    "a count of other species is read against the purity "
+                    "analysis of the same sample, and there is no purity here",
+                    subject,
+                )
+            )
+
+        if certificate.kind.crosses_borders and not report.is_complete:
+            broken.append(
+                Rule(
+                    "OTHER_SEED_SEARCH_TOO_NARROW",
+                    f"a {report.kind} search only covers what it was asked to "
+                    "look for, so it cannot be the other seed figure on a "
+                    "certificate that crosses a border",
+                    subject,
+                )
+            )
+
+        if not report.is_complete and not report.sought:
+            broken.append(
+                Rule(
+                    "OTHER_SEED_SEARCH_UNSTATED",
+                    f"a {report.kind} search has to name what it looked for, "
+                    "or a nil return reads as though nothing is there at all",
+                    subject,
+                )
+            )
+
+        if (
+            report.is_complete
+            and report.is_nil
+            and results.other_seed is not None
+            and results.other_seed.value > Decimal("0")
+        ):
+            # The purity analysis weighed seeds of other species out of the
+            # working sample. A complete search of ten times that sample then
+            # found none of them. One of the two is wrong and the certificate
+            # is not the place to work out which.
+            broken.append(
+                Rule(
+                    "OTHER_SEED_CONTRADICTS_PURITY",
+                    f"the purity analysis found {results.other_seed} other "
+                    "seed by weight and the complete search found none by "
+                    "number",
+                    subject,
+                )
+            )
 
     if (
         results.germination_tested_on is not None
