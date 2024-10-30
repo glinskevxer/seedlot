@@ -22,6 +22,8 @@ from arc.certificates.model import (
     CertificateKind,
     CertificateNumber,
     Determinations,
+    OtherSeedCount,
+    OtherSeedReport,
     check_certificate,
 )
 from arc.errors import Rule, RuleBroken
@@ -33,6 +35,7 @@ from arc.species import register
 from arc.storage.certificates import CertificateRepository
 from arc.storage.determinations import GerminationRepository, PurityRepository
 from arc.storage.lots import LotRepository
+from arc.storage.otherseed import OtherSeedRepository, StoredSearch
 from arc.storage.physical import MoistureRepository, SeedWeightRepository
 
 __all__ = ["gather", "issue"]
@@ -58,6 +61,7 @@ def gather(
     germination: GerminationRepository,
     moisture: MoistureRepository | None = None,
     seed_weight: SeedWeightRepository | None = None,
+    other_seed: OtherSeedRepository | None = None,
 ) -> Gathered:
     """Pulls the recorded determinations together into one set of results.
 
@@ -133,6 +137,12 @@ def gather(
                     )
                 )
 
+    other_seed_report = None
+    if other_seed is not None:
+        searched = other_seed.latest_for_lot(lot_reference)
+        if searched is not None:
+            other_seed_report = _report_from(searched)
+
     return Gathered(
         results=Determinations(
             pure_seed=pure,
@@ -142,8 +152,33 @@ def gather(
             germination_tested_on=tested_on,
             moisture_percent=moisture_percent,
             thousand_seed_weight_g=thousand_seed_weight,
+            other_seed_report=other_seed_report,
         ),
         problems=tuple(problems),
+    )
+
+
+def _report_from(stored: StoredSearch) -> OtherSeedReport:
+    """Turns a recorded search into the shape the certificate carries.
+
+    The rate per kilogram is worked out here rather than stored, because it is
+    the count and the weight examined that were measured and the rate is only
+    ever arithmetic on the two. Storing it would give a later change to the
+    rounding somewhere to hide.
+    """
+    search = stored.search
+    return OtherSeedReport(
+        kind=search.kind.value,
+        weight_examined_g=search.weight_examined_g,
+        counts=tuple(
+            OtherSeedCount(
+                species_name=finding.species_name,
+                count=finding.count,
+                per_kg=search.rate_per_kg(finding.species_name),
+            )
+            for finding in search.findings
+        ),
+        sought=search.sought,
     )
 
 
@@ -159,6 +194,7 @@ def issue(
     certificates: CertificateRepository,
     moisture: MoistureRepository | None = None,
     seed_weight: SeedWeightRepository | None = None,
+    other_seed: OtherSeedRepository | None = None,
 ) -> Certificate:
     """Issues a certificate for a lot, or refuses with every reason it cannot.
 
@@ -174,6 +210,7 @@ def issue(
         germination=germination,
         moisture=moisture,
         seed_weight=seed_weight,
+        other_seed=other_seed,
     )
 
     number = CertificateNumber(

@@ -18,6 +18,7 @@ import click
 from arc.storage.certificates import CertificateRepository
 from arc.storage.determinations import GerminationRepository, PurityRepository
 from arc.storage.lots import LotRepository
+from arc.storage.otherseed import OtherSeedRepository
 from arc.storage.physical import MoistureRepository, SeedWeightRepository
 from arc.storage.schema import connect, migrate
 
@@ -34,6 +35,7 @@ class Station:
     germination: GerminationRepository
     moisture: MoistureRepository
     seed_weight: SeedWeightRepository
+    other_seed: OtherSeedRepository
     certificates: CertificateRepository
 
     def close(self) -> None:
@@ -58,6 +60,7 @@ def open_station(database: Path) -> Station:
         germination=GerminationRepository(connection),
         moisture=MoistureRepository(connection),
         seed_weight=SeedWeightRepository(connection),
+        other_seed=OtherSeedRepository(connection),
         certificates=CertificateRepository(connection),
     )
 
