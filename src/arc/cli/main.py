@@ -23,6 +23,7 @@ from arc.cli.certificate_commands import certificate
 from arc.cli.context import DEFAULT_DATABASE, Context, pass_context
 from arc.cli.germination_commands import germination
 from arc.cli.lot_commands import lot
+from arc.cli.otherseed_commands import otherseed
 from arc.cli.physical_commands import moisture, seedweight
 from arc.cli.purity_commands import purity
 from arc.cli.report_commands import report
@@ -67,6 +68,7 @@ cli.add_command(certificate)
 cli.add_command(report)
 cli.add_command(moisture)
 cli.add_command(seedweight)
+cli.add_command(otherseed)
 
 
 @cli.command()
