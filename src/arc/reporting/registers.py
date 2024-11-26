@@ -14,16 +14,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-from arc.certificates.model import Certificate
+from arc.certificates.model import Certificate, OtherSeedReport
 from arc.lots.model import LotStatus, SeedLot
+from arc.otherseed.model import OtherSeedSearch
 from arc.reporting.csv_writer import CsvWriter
 from arc.storage.certificates import CertificateRepository
 from arc.storage.lots import LotRepository
+from arc.storage.otherseed import OtherSeedRepository
 
 __all__ = [
     "certificate_register",
     "work_in_progress",
     "merchant_register",
+    "other_seed_register",
     "WorkItem",
 ]
 
@@ -48,6 +51,8 @@ def certificate_register(
             "pure seed",
             "germination",
             "germination tested",
+            "other seed searched g",
+            "other seed found",
             "withdrawn on",
             "supersedes",
         ]
@@ -67,11 +72,81 @@ def certificate_register(
             results.pure_seed,
             results.germination_percent,
             results.germination_tested_on,
+            None
+            if results.other_seed_report is None
+            else results.other_seed_report.weight_examined_g,
+            _found_summary(results.other_seed_report),
             issued.withdrawn_on,
             issued.supersedes,
         )
 
     return sheet.to_csv()
+
+
+def _found_summary(report: OtherSeedReport | None) -> str | None:
+    """What went in the found column, or nothing when no search was done.
+
+    An empty cell means nobody searched. A cell reading "none" means somebody
+    searched and found nothing, which is a much stronger statement and the one
+    a merchant is buying.
+    """
+    if report is None:
+        return None
+    if report.is_nil:
+        return "none"
+    return ", ".join(
+        f"{found.species_name} {found.count}" for found in report.counts if found.count > 0
+    )
+
+
+def other_seed_register(
+    lots: LotRepository,
+    searches: OtherSeedRepository,
+) -> str:
+    """Every search the station has done, whatever came of it.
+
+    Kept separate from the certificate register because a search is often
+    ordered on its own, and because the accreditation body asks for the
+    searches by species found rather than by certificate.
+    """
+    sheet = CsvWriter(
+        [
+            "lot",
+            "species",
+            "merchant",
+            "searched on",
+            "kind",
+            "weight examined g",
+            "sought",
+            "found",
+            "analyst",
+        ]
+    )
+
+    for lot in lots.open_lots():
+        for stored in searches.for_lot(str(lot.reference)):
+            search = stored.search
+            sheet.row(
+                lot.reference,
+                lot.species_name,
+                lot.merchant,
+                stored.searched_on,
+                search.kind.value,
+                search.weight_examined_g,
+                "; ".join(search.sought),
+                "none" if search.nil_return else _findings_summary(search),
+                search.analyst,
+            )
+
+    return sheet.to_csv()
+
+
+def _findings_summary(search: OtherSeedSearch) -> str:
+    return ", ".join(
+        f"{finding.species_name} {finding.count}"
+        for finding in search.findings
+        if finding.count > 0
+    )
 
 
 @dataclass(frozen=True)

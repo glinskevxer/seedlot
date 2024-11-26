@@ -15,7 +15,12 @@ import click
 
 from arc.cli.context import Context
 from arc.cli.station import open_station
-from arc.reporting.registers import certificate_register, merchant_register, work_in_progress
+from arc.reporting.registers import (
+    certificate_register,
+    merchant_register,
+    other_seed_register,
+    work_in_progress,
+)
 
 __all__ = ["report"]
 
@@ -155,3 +160,24 @@ def expiring(context: Context, within: int) -> None:
             f"{issued.number}  {issued.lot_reference}  {issued.merchant}  "
             f"expires {expires} in {days} days"
         )
+
+
+@report.command("searches")
+@click.option(
+    "--out",
+    type=click.Path(path_type=Path, dir_okay=False),
+    default=None,
+    help="Write to a file rather than to the terminal.",
+)
+@click.pass_obj
+def searches(context: Context, out: Path | None) -> None:
+    """Every search for other species, as a spreadsheet."""
+    station = open_station(context.database)
+    csv_text = other_seed_register(station.lots, station.other_seed)
+
+    if out is None:
+        click.echo(csv_text)
+        return
+
+    out.write_text(csv_text, encoding="utf-8")
+    context.say(f"written to {out}")
