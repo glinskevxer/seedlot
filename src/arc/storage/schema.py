@@ -222,6 +222,16 @@ MIGRATIONS: tuple[Migration, ...] = (
             "create index other_seed_lot_idx on other_seed_search (lot_reference)",
         ),
     ),
+    Migration(
+        version=6,
+        name="dormancy treatment on a germination test",
+        statements=(
+            # Existing rows are tests that had nothing done to the sample,
+            # which is exactly what the default says, so no backfill is needed.
+            "alter table germination_test add column treatment text not null " "default 'none'",
+            "create index germination_treatment_idx on germination_test (treatment)",
+        ),
+    ),
 )
 
 
@@ -263,17 +273,25 @@ def applied_versions(connection: sqlite3.Connection) -> tuple[int, ...]:
     return tuple(row["version"] for row in rows)
 
 
-def migrate(connection: sqlite3.Connection) -> tuple[int, ...]:
+def migrate(
+    connection: sqlite3.Connection,
+    migrations: tuple[Migration, ...] = MIGRATIONS,
+) -> tuple[int, ...]:
     """Brings the database up to date and says what it applied.
 
     Each migration runs in its own transaction. A migration that fails halfway
     leaves the ones before it applied and itself not, which is the only state
     that can be recovered from without guessing.
+
+    The list is a parameter so that a test can build a database as an older
+    release left it and then let the newer migrations run over it. That is the
+    case that breaks in production and never in a suite, because a suite always
+    migrates from empty.
     """
     already = set(applied_versions(connection))
     applied: list[int] = []
 
-    for migration in MIGRATIONS:
+    for migration in migrations:
         if migration.version in already:
             continue
         connection.execute("begin")

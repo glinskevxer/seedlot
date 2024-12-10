@@ -16,7 +16,7 @@ import sqlite3
 from datetime import date
 from decimal import Decimal
 
-from arc.germination.model import GerminationTest, Replicate
+from arc.germination.model import GerminationTest, Replicate, Treatment
 from arc.purity.analysis import PurityAnalysis, PurityResult
 from arc.storage.codec import (
     from_bool,
@@ -151,8 +151,8 @@ class GerminationRepository:
                 insert into germination_test
                     (lot_reference, seeds_per_replicate, replicate_count,
                      set_down_on, final_count_on, analyst, is_retest,
-                     mean_normal, replicate_range)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     treatment, mean_normal, replicate_range)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     test.lot_reference,
@@ -162,6 +162,7 @@ class GerminationRepository:
                     to_iso(test.final_count_on),
                     test.analyst,
                     from_bool(test.is_retest),
+                    test.treatment.value,
                     test.mean_normal,
                     to_text(test.replicate_range),
                 ),
@@ -226,4 +227,5 @@ class GerminationRepository:
             final_count_on=to_date(row["final_count_on"]),
             analyst=row["analyst"],
             is_retest=to_bool(row["is_retest"]),
+            treatment=Treatment(row["treatment"]),
         )
