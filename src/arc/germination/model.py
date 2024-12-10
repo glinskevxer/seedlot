@@ -28,6 +28,7 @@ from arc.errors import Rule
 
 __all__ = [
     "Category",
+    "Treatment",
     "REPLICATE_LAYOUTS",
     "Replicate",
     "GerminationTest",
@@ -57,6 +58,35 @@ class Category(Enum):
     def may_still_grow(self) -> bool:
         """Hard seed usually does eventually. Fresh seed is a bad sign."""
         return self in (Category.HARD, Category.FRESH)
+
+
+class Treatment(Enum):
+    """What was done to the sample to get it out of dormancy.
+
+    Every one of these changes the conditions the seeds were under, so every
+    one of them has to be named on the certificate. A germination of 94 after
+    a gibberellic acid soak is not the same claim as a germination of 94.
+    """
+
+    NONE = "none"
+    PRECHILL = "prechill"
+    PREHEAT = "preheat"
+    KNO3 = "potassium nitrate"
+    GIBBERELLIC_ACID = "gibberellic acid"
+    SCARIFY = "scarify"
+
+    @property
+    def was_applied(self) -> bool:
+        return self is not Treatment.NONE
+
+    @property
+    def goes_on_the_certificate(self) -> bool:
+        """Anything that was done to the seed has to be declared."""
+        return self.was_applied
+
+    @property
+    def label(self) -> str:
+        return self.value
 
 
 #: The layouts the handbook allows, as (replicates, seeds each). Four hundred
@@ -113,6 +143,7 @@ class GerminationTest:
     final_count_on: date
     analyst: str
     is_retest: bool = False
+    treatment: Treatment = Treatment.NONE
 
     def __post_init__(self) -> None:
         if not self.replicates:

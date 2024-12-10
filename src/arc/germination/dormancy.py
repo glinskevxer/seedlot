@@ -20,14 +20,12 @@ has not finished rather than that the lot is poor.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 
 from arc.errors import Rule
-from arc.germination.model import Category, GerminationTest
+from arc.germination.model import Category, GerminationTest, Treatment
 from arc.species.model import SeedClass, Species
 
 __all__ = [
-    "Treatment",
     "FRESH_SEED_LIMIT",
     "HARD_SEED_REPORTED_FROM",
     "Dormancy",
@@ -35,35 +33,6 @@ __all__ = [
     "assess",
     "check_treatment",
 ]
-
-
-class Treatment(Enum):
-    """What was done to the sample to get it out of dormancy.
-
-    Every one of these changes the conditions the seeds were under, so every
-    one of them has to be named on the certificate. A germination of 94 after
-    a gibberellic acid soak is not the same claim as a germination of 94.
-    """
-
-    NONE = "none"
-    PRECHILL = "prechill"
-    PREHEAT = "preheat"
-    KNO3 = "potassium nitrate"
-    GIBBERELLIC_ACID = "gibberellic acid"
-    SCARIFY = "scarify"
-
-    @property
-    def was_applied(self) -> bool:
-        return self is not Treatment.NONE
-
-    @property
-    def goes_on_the_certificate(self) -> bool:
-        """Anything that was done to the seed has to be declared."""
-        return self.was_applied
-
-    @property
-    def label(self) -> str:
-        return self.value
 
 
 #: Fresh ungerminated seed above this share of the test means the test has not
@@ -149,12 +118,13 @@ def assess(test: GerminationTest) -> Dormancy:
     )
 
 
-def check_treatment(
-    test: GerminationTest,
-    treatment: Treatment,
-    species: Species,
-) -> list[Rule]:
-    """Whether this test, with this treatment, may be reported.
+def check_treatment(test: GerminationTest, species: Species) -> list[Rule]:
+    """Whether this test may be reported as it stands.
+
+    The treatment comes off the test rather than being passed in beside it.
+    They are one thing: a germination of 94 after a nitrate soak and a
+    germination of 94 with nothing done to the sample are different results,
+    and holding them apart made it possible to check one and record the other.
 
     The two directions both matter. A dormant sample tested with no treatment
     is a result nobody may quote, and a treated sample is a different claim
@@ -162,6 +132,7 @@ def check_treatment(
     """
     broken: list[Rule] = []
     subject = test.lot_reference
+    treatment = test.treatment
     dormancy = assess(test)
 
     if treatment not in treatments_for(species):

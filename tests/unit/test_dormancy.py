@@ -16,12 +16,11 @@ from arc.germination.dormancy import (
     FRESH_SEED_LIMIT,
     HARD_SEED_REPORTED_FROM,
     Dormancy,
-    Treatment,
     assess,
     check_treatment,
     treatments_for,
 )
-from arc.germination.model import GerminationTest, Replicate
+from arc.germination.model import GerminationTest, Replicate, Treatment
 from arc.species.model import Species
 
 
@@ -33,6 +32,7 @@ def a_test(
     fresh: int = 0,
     dead: int = 0,
     is_retest: bool = False,
+    treatment: Treatment = Treatment.NONE,
 ) -> GerminationTest:
     """Four trays, all counted the same, a hundred seeds each."""
     return GerminationTest(
@@ -47,11 +47,12 @@ def a_test(
         final_count_on=date(2024, 9, 28),
         analyst="J. Whitfield",
         is_retest=is_retest,
+        treatment=treatment,
     )
 
 
-def codes(test: GerminationTest, treatment: Treatment, species: Species) -> list[str]:
-    return [rule.code for rule in check_treatment(test, treatment, species)]
+def codes(test: GerminationTest, species: Species) -> list[str]:
+    return [rule.code for rule in check_treatment(test, species)]
 
 
 class TestReadingDormancyOffATest:
@@ -172,16 +173,16 @@ class TestWhichTreatmentsAreAllowed:
 
 class TestWhatMayBeReported:
     def test_a_clean_test_with_no_treatment_is_fine(self, wheat: Species) -> None:
-        assert codes(a_test(), Treatment.NONE, wheat) == []
+        assert codes(a_test(), wheat) == []
 
     def test_a_dormant_test_with_no_treatment_is_refused(self, wheat: Species) -> None:
         dormant = a_test(normal=80, abnormal=4, fresh=16)
 
-        assert "DORMANCY_NOT_BROKEN" in codes(dormant, Treatment.NONE, wheat)
+        assert "DORMANCY_NOT_BROKEN" in codes(dormant, wheat)
 
     def test_and_the_refusal_says_what_to_do_about_it(self, wheat: Species) -> None:
         dormant = a_test(normal=80, abnormal=4, fresh=16)
-        broken = check_treatment(dormant, Treatment.NONE, wheat)
+        broken = check_treatment(dormant, wheat)
 
         assert "test it again" in broken[0].detail
 
@@ -192,25 +193,29 @@ class TestWhatMayBeReported:
         # and the analyst has to be able to record it.
         dormant = a_test(normal=80, abnormal=4, fresh=16, is_retest=True)
 
-        assert codes(dormant, Treatment.NONE, wheat) == []
+        assert codes(dormant, wheat) == []
 
     def test_a_treated_test_has_to_be_marked_as_a_retest(self, wheat: Species) -> None:
-        dormant = a_test(normal=80, abnormal=4, fresh=16)
+        dormant = a_test(normal=80, abnormal=4, fresh=16, treatment=Treatment.PRECHILL)
 
-        assert "TREATED_TEST_NOT_MARKED" in codes(dormant, Treatment.PRECHILL, wheat)
+        assert "TREATED_TEST_NOT_MARKED" in codes(dormant, wheat)
 
     def test_a_treated_retest_is_accepted(self, wheat: Species) -> None:
-        treated = a_test(normal=92, abnormal=4, fresh=4, is_retest=True)
+        treated = a_test(
+            normal=92, abnormal=4, fresh=4, is_retest=True, treatment=Treatment.PRECHILL
+        )
 
-        assert codes(treated, Treatment.PRECHILL, wheat) == []
+        assert codes(treated, wheat) == []
 
     def test_a_treatment_off_the_handbook_is_refused(self, wheat: Species) -> None:
-        assert "TREATMENT_NOT_ALLOWED" in codes(a_test(), Treatment.SCARIFY, wheat)
+        scarified = a_test(treatment=Treatment.SCARIFY)
+
+        assert "TREATMENT_NOT_ALLOWED" in codes(scarified, wheat)
 
     def test_both_faults_come_back_at_once(self, wheat: Species) -> None:
-        dormant = a_test(normal=80, abnormal=4, fresh=16)
+        dormant = a_test(normal=80, abnormal=4, fresh=16, treatment=Treatment.SCARIFY)
 
-        assert set(codes(dormant, Treatment.SCARIFY, wheat)) == {
+        assert set(codes(dormant, wheat)) == {
             "TREATMENT_NOT_ALLOWED",
             "TREATED_TEST_NOT_MARKED",
         }
