@@ -27,6 +27,7 @@ from arc.certificates.model import (
     check_certificate,
 )
 from arc.errors import Rule, RuleBroken
+from arc.germination.dormancy import check_treatment
 from arc.germination.outcome import decide
 from arc.lots.model import LotStatus
 from arc.purity.tolerance import compare
@@ -104,13 +105,18 @@ def gather(
 
     germination_percent = None
     tested_on = None
+    treatment = None
     tests = germination.for_lot(lot_reference)
 
     if tests:
+        reported = tests[-1]
+        problems.extend(check_treatment(reported, register.require(species_name)))
+
         outcome = decide(tests[0], tests[1] if len(tests) > 1 else None)
         if outcome.verdict.is_final:
             germination_percent = outcome.reported_percent
-            tested_on = tests[-1].final_count_on
+            tested_on = reported.final_count_on
+            treatment = reported.treatment
         else:
             problems.append(
                 Rule(
@@ -150,6 +156,7 @@ def gather(
             inert_matter=inert,
             germination_percent=germination_percent,
             germination_tested_on=tested_on,
+            germination_treatment=treatment,
             moisture_percent=moisture_percent,
             thousand_seed_weight_g=thousand_seed_weight,
             other_seed_report=other_seed_report,

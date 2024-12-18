@@ -14,6 +14,7 @@ from arc.certificates.model import (
     Determinations,
     check_certificate,
 )
+from arc.germination.model import Treatment
 from arc.quantities import Percentage
 
 
@@ -24,6 +25,7 @@ def full_results(**overrides: object) -> Determinations:
         "inert_matter": Percentage("0.8"),
         "germination_percent": 96,
         "germination_tested_on": date(2024, 9, 28),
+        "germination_treatment": Treatment.NONE,
         "moisture_percent": Decimal("14.0"),
         "thousand_seed_weight_g": Decimal("45.0"),
     }
@@ -218,3 +220,61 @@ class TestReplacements:
 
     def test_a_certificate_is_not_withdrawn_until_it_is(self) -> None:
         assert not a_certificate().is_withdrawn
+
+
+class TestSayingWhatWasDoneToTheSample:
+    def test_a_germination_with_no_treatment_stated_is_refused(self) -> None:
+        # Not stated is not the same as nothing done. The first means the
+        # record lost track of it.
+        results = full_results(germination_treatment=None)
+
+        broken = [rule.code for rule in check_certificate(a_certificate(results=results))]
+
+        assert "GERMINATION_TREATMENT_NOT_STATED" in broken
+
+    def test_a_germination_with_nothing_done_is_fine(self) -> None:
+        results = full_results(germination_treatment=Treatment.NONE)
+
+        assert check_certificate(a_certificate(results=results)) == []
+
+    def test_a_treated_germination_is_fine_too(self) -> None:
+        results = full_results(germination_treatment=Treatment.PRECHILL)
+
+        assert check_certificate(a_certificate(results=results)) == []
+
+    def test_no_germination_at_all_raises_nothing_about_treatments(self) -> None:
+        results = full_results(
+            germination_percent=None,
+            germination_tested_on=None,
+            germination_treatment=None,
+        )
+
+        broken = [rule.code for rule in check_certificate(a_certificate(results=results))]
+
+        assert "GERMINATION_TREATMENT_NOT_STATED" not in broken
+
+
+class TestHowTheGerminationIsPrinted:
+    def test_an_untreated_germination_prints_plainly(self) -> None:
+        results = full_results(germination_treatment=Treatment.NONE)
+
+        assert results.germination_line == "96 percent normal seedlings"
+
+    def test_a_treated_one_carries_the_treatment(self) -> None:
+        results = full_results(germination_treatment=Treatment.KNO3)
+
+        assert results.germination_line == (
+            "96 percent normal seedlings after potassium nitrate"
+        )
+
+    def test_no_germination_prints_nothing_at_all(self) -> None:
+        results = full_results(germination_percent=None)
+
+        assert results.germination_line is None
+
+    def test_a_treatment_that_was_never_stated_prints_the_bare_figure(self) -> None:
+        # The certificate cannot be issued in this state anyway. Printing the
+        # figure without inventing a treatment is the safe way to render it.
+        results = full_results(germination_treatment=None)
+
+        assert results.germination_line == "96 percent normal seedlings"

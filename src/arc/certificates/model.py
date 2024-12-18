@@ -25,6 +25,7 @@ from decimal import Decimal
 from enum import Enum
 
 from arc.errors import Rule
+from arc.germination.model import Treatment
 from arc.quantities import Percentage
 
 __all__ = [
@@ -159,6 +160,7 @@ class Determinations:
     inert_matter: Percentage | None = None
     germination_percent: int | None = None
     germination_tested_on: date | None = None
+    germination_treatment: Treatment | None = None
     hard_seed_percent: int | None = None
     moisture_percent: Decimal | None = None
     thousand_seed_weight_g: Decimal | None = None
@@ -171,6 +173,24 @@ class Determinations:
     @property
     def has_germination(self) -> bool:
         return self.germination_percent is not None
+
+    @property
+    def germination_line(self) -> str | None:
+        """The germination as it is printed, treatment and all.
+
+        A figure obtained after a nitrate soak is a different claim from the
+        same figure with nothing done to the sample, so the two never print
+        the same way.
+        """
+        if self.germination_percent is None:
+            return None
+        if self.germination_treatment in (None, Treatment.NONE):
+            return f"{self.germination_percent} percent normal seedlings"
+        treatment = self.germination_treatment
+        assert treatment is not None
+        return (
+            f"{self.germination_percent} percent normal seedlings " f"after {treatment.value}"
+        )
 
     def determinations(self) -> tuple[str, ...]:
         """The names of everything that was actually done."""
@@ -273,6 +293,19 @@ def check_certificate(certificate: Certificate) -> list[Rule]:
                 "GERMINATION_UNDATED",
                 "a germination figure is only quotable for a year, so it has to "
                 "carry the date it was tested",
+                subject,
+            )
+        )
+
+    if results.has_germination and results.germination_treatment is None:
+        # None and Treatment.NONE are different answers. The first says the
+        # record does not know what was done to the sample, and a germination
+        # nobody can account for is not a germination anybody may quote.
+        broken.append(
+            Rule(
+                "GERMINATION_TREATMENT_NOT_STATED",
+                "the certificate carries a germination without saying what was "
+                "done to the sample, not even that it was nothing",
                 subject,
             )
         )

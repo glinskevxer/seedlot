@@ -31,6 +31,7 @@ from arc.certificates.model import (
     OtherSeedReport,
 )
 from arc.errors import NotFound
+from arc.germination.model import Treatment
 from arc.quantities import Percentage
 from arc.storage.codec import to_date, to_decimal, to_iso, to_optional_date, to_text
 
@@ -52,6 +53,9 @@ def results_to_json(results: Determinations) -> str:
         "germination_tested_on": None
         if results.germination_tested_on is None
         else to_iso(results.germination_tested_on),
+        "germination_treatment": None
+        if results.germination_treatment is None
+        else results.germination_treatment.value,
         "hard_seed_percent": results.hard_seed_percent,
         "moisture_percent": None
         if results.moisture_percent is None
@@ -115,6 +119,9 @@ def results_from_json(text: str) -> Determinations:
         inert_matter=percentage("inert_matter"),
         germination_percent=payload.get("germination_percent"),
         germination_tested_on=None if tested_on is None else to_date(tested_on),
+        germination_treatment=None
+        if payload.get("germination_treatment") is None
+        else Treatment(payload["germination_treatment"]),
         hard_seed_percent=payload.get("hard_seed_percent"),
         moisture_percent=decimal("moisture_percent"),
         thousand_seed_weight_g=decimal("thousand_seed_weight_g"),

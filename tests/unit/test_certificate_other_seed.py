@@ -19,6 +19,7 @@ from arc.certificates.model import (
     OtherSeedReport,
     check_certificate,
 )
+from arc.germination.model import Treatment
 from arc.quantities import Percentage
 
 
@@ -44,6 +45,7 @@ def results_with(report: OtherSeedReport | None, **overrides: object) -> Determi
         "inert_matter": Percentage("0.8"),
         "germination_percent": 96,
         "germination_tested_on": date(2024, 9, 28),
+        "germination_treatment": Treatment.NONE,
         "other_seed_report": report,
     }
     defaults.update(overrides)
