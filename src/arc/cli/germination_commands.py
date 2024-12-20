@@ -15,9 +15,11 @@ import click
 
 from arc.cli.context import Context
 from arc.cli.station import open_station
-from arc.germination.model import GerminationTest, Replicate, check_test
+from arc.germination.dormancy import assess, check_treatment, treatments_for
+from arc.germination.model import GerminationTest, Replicate, Treatment, check_test
 from arc.germination.outcome import decide
 from arc.germination.tolerance import check_range
+from arc.species import register
 
 __all__ = ["germination"]
 
@@ -62,6 +64,13 @@ def germination() -> None:
 @click.option("--final-count", type=click.DateTime(formats=["%Y-%m-%d"]), required=True)
 @click.option("--analyst", required=True)
 @click.option("--retest", is_flag=True, help="This is the repeat of an earlier test.")
+@click.option(
+    "--treatment",
+    type=click.Choice([treatment.value for treatment in Treatment]),
+    default=Treatment.NONE.value,
+    show_default=True,
+    help="What was done to the sample to get it out of dormancy.",
+)
 @click.pass_obj
 def record(
     context: Context,
@@ -72,6 +81,7 @@ def record(
     final_count: datetime,
     analyst: str,
     retest: bool,
+    treatment: str,
 ) -> None:
     """Record one germination test and say what it comes to."""
     station = open_station(context.database)
@@ -86,9 +96,11 @@ def record(
         final_count_on=final_count.date(),
         analyst=analyst,
         is_retest=retest,
+        treatment=Treatment(treatment),
     )
 
-    broken = check_test(test)
+    species = register.require(lot.species_name)
+    broken = check_test(test) + check_treatment(test, species)
     if broken:
         for rule in broken:
             click.echo(f"refused: {rule.detail}", err=True)
@@ -97,9 +109,15 @@ def record(
     station.germination.record(test)
 
     spread = check_range(test.mean_normal, test.replicate_range)
+    dormancy = assess(test)
     context.say(f"recorded against {reference}")
     click.echo(f"germination {test.mean_normal} percent")
     click.echo(spread.explain())
+
+    if dormancy.hard_seed_is_reportable:
+        click.echo(f"hard seed {dormancy.hard_percent} percent")
+    if dormancy.is_dormant:
+        click.echo(dormancy.explain())
 
     if spread.must_be_repeated:
         click.echo("the test has to be set down again", err=True)
@@ -129,9 +147,22 @@ def show(context: Context, reference: str) -> None:
             + "  ".join(str(tray.normal) for tray in test.replicates)
             + f"   mean {test.mean_normal}   spread {test.replicate_range}"
         )
+        if test.treatment.was_applied:
+            click.echo(f"   after {test.treatment.value}")
 
     outcome = decide(tests[0], tests[1] if len(tests) > 1 else None)
     click.echo(f"verdict: {outcome.verdict.value}")
     click.echo(f"  {outcome.reason}")
     if outcome.reported_percent is not None:
         click.echo(f"  reporting {outcome.reported_percent} percent")
+
+
+@germination.command("treatments")
+@click.argument("species_name")
+def treatments(species_name: str) -> None:
+    """Which treatments the handbook allows for a species."""
+    species = register.require(species_name)
+
+    click.echo(f"{species.botanical_name} ({species.common_name})")
+    for treatment in treatments_for(species):
+        click.echo(f"  {treatment.value}")
