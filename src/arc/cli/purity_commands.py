@@ -5,7 +5,7 @@ from __future__ import annotations
 import click
 
 from arc.cli.context import Context
-from arc.cli.station import open_station, weight_option
+from arc.cli.station import weight_option
 from arc.purity.analysis import analyse, check_analysis
 from arc.purity.tolerance import compare
 from arc.species import register
@@ -40,7 +40,7 @@ def record(
     """Record one analysis and print what it comes to."""
     from arc.purity.analysis import PurityAnalysis
 
-    station = open_station(context.database)
+    station = context.station()
     lot = station.lots.require(reference)
     species = register.require(lot.species_name)
 
@@ -82,7 +82,7 @@ def record(
 @click.pass_obj
 def show(context: Context, reference: str) -> None:
     """Every analysis of one lot, and whether the duplicates agree."""
-    station = open_station(context.database)
+    station = context.station()
     lot = station.lots.require(reference)
     species = register.require(lot.species_name)
     analyses = station.purity.for_lot(reference)

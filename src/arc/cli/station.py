@@ -42,15 +42,26 @@ class Station:
         self.connection.close()
 
 
-def open_station(database: Path) -> Station:
+def open_station(
+    database: Path,
+    *,
+    journal_mode: str = "wal",
+    synchronous: str = "full",
+) -> Station:
     """Opens the database, bringing it up to date if it is behind.
 
     Migrating on open rather than through a separate command is deliberate. The
     station has no operations team; the first person in on Monday should not
     have to know that a release needed a schema step.
+
+    The journal mode is here rather than fixed because write ahead logging
+    needs a filesystem that can do proper file locking, and the share the
+    database lives on is not always one. On a mount that cannot, WAL either
+    refuses quietly and falls back or corrupts the file, and neither is
+    something to find out about during an audit.
     """
     database.parent.mkdir(parents=True, exist_ok=True)
-    connection = connect(database)
+    connection = connect(database, journal_mode=journal_mode, synchronous=synchronous)
     migrate(connection)
 
     return Station(

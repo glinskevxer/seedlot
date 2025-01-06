@@ -4,22 +4,16 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from pathlib import Path
 
 import click
 
 from arc.cli.context import Context
-from arc.cli.station import open_station, weight_option
+from arc.cli.station import weight_option
 from arc.errors import RuleBroken
 from arc.lots.model import ContainerKind, LotReference, SeedLot
-from arc.storage.lots import LotRepository
 from arc.workflow.booking import book_in, split_advice
 
 __all__ = ["lot"]
-
-
-def _repository(database: Path) -> LotRepository:
-    return open_station(database).lots
 
 
 def _weight(raw: str) -> Decimal:
@@ -69,7 +63,7 @@ def book_in_command(
         origin_country=origin.upper(),
     )
 
-    lots = _repository(context.database)
+    lots = context.station().lots
     try:
         booked = book_in(incoming, lots, on=context.today)
     except RuleBroken as refused:
@@ -90,7 +84,7 @@ def book_in_command(
 @click.pass_obj
 def show_lot(context: Context, reference: str) -> None:
     """Everything the station knows about one lot."""
-    lots = _repository(context.database)
+    lots = context.station().lots
     found = lots.require(reference)
 
     click.echo(f"{found.reference} {found.species_name}")
@@ -115,7 +109,7 @@ def show_lot(context: Context, reference: str) -> None:
 @click.pass_obj
 def list_lots(context: Context, species: str | None) -> None:
     """The lots still open, oldest first."""
-    lots = _repository(context.database)
+    lots = context.station().lots
     found = lots.for_species(species) if species else lots.open_lots()
 
     if not found:

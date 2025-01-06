@@ -21,6 +21,11 @@ def journal_mode(connection: sqlite3.Connection) -> str:
     return str(connection.execute("pragma journal_mode").fetchone()[0]).lower()
 
 
+def synchronous(connection: sqlite3.Connection) -> int:
+    """0 is off, 1 is normal, 2 is full. SQLite reports it as a number."""
+    return int(connection.execute("pragma synchronous").fetchone()[0])
+
+
 def foreign_keys_on(connection: sqlite3.Connection) -> bool:
     return bool(connection.execute("pragma foreign_keys").fetchone()[0])
 
@@ -91,6 +96,44 @@ class TestTheJournalMode:
             )
 
         connection.close()
+
+
+class TestSynchronous:
+    def test_the_station_waits_for_the_disk(self, tmp_path) -> None:
+        connection = connect(tmp_path / "arc.sqlite3")
+
+        assert synchronous(connection) == 2
+
+        connection.close()
+
+    def test_a_throwaway_database_does_not_have_to(self, tmp_path) -> None:
+        connection = connect(tmp_path / "arc.sqlite3", synchronous="off")
+
+        assert synchronous(connection) == 0
+
+        connection.close()
+
+    def test_normal_sits_between_them(self, tmp_path) -> None:
+        connection = connect(tmp_path / "arc.sqlite3", synchronous="normal")
+
+        assert synchronous(connection) == 1
+
+        connection.close()
+
+    def test_the_data_is_still_there_with_it_off(self, tmp_path) -> None:
+        # Off risks the file on a power cut. It does not make writes optional.
+        path = tmp_path / "arc.sqlite3"
+        connection = connect(path, journal_mode="memory", synchronous="off")
+        migrate(connection)
+        connection.execute("create table scratch (value text)")
+        connection.execute("insert into scratch values ('kept')")
+        connection.close()
+
+        reopened = connect(path, journal_mode="memory", synchronous="off")
+
+        assert reopened.execute("select value from scratch").fetchone()[0] == "kept"
+
+        reopened.close()
 
 
 class TestMigrating:

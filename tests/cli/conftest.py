@@ -31,6 +31,12 @@ def run(runner, tmp_path):
                 str(tmp_path / "arc.sqlite3"),
                 "--today",
                 TODAY,
+                # No write ahead log. These databases live for one test and
+                # setting the log up costs more than every query they make.
+                "--journal",
+                "memory",
+                "--sync",
+                "off",
                 *args,
             ],
             catch_exceptions=False,

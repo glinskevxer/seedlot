@@ -10,7 +10,7 @@ from __future__ import annotations
 import click
 
 from arc.cli.context import Context
-from arc.cli.station import open_station, weight_option
+from arc.cli.station import weight_option
 from arc.moisture.determination import (
     Weighing,
     check_duplicates,
@@ -61,7 +61,7 @@ def record_moisture(
     predry_percent: str | None,
 ) -> None:
     """Record one moisture weighing and say what it comes to."""
-    station = open_station(context.database)
+    station = context.station()
     lot = station.lots.require(reference)
     species = register.require(lot.species_name)
 
@@ -109,7 +109,7 @@ def record_moisture(
 @click.pass_obj
 def show_moisture(context: Context, reference: str) -> None:
     """Every moisture weighing on a lot, and what would be reported."""
-    station = open_station(context.database)
+    station = context.station()
     station.lots.require(reference)
     stored = station.moisture.for_lot(reference)
 
@@ -155,7 +155,7 @@ def record_seed_weight(
     context: Context, reference: str, replicates: tuple[str, ...], analyst: str
 ) -> None:
     """Record a thousand seed weight determination."""
-    station = open_station(context.database)
+    station = context.station()
     lot = station.lots.require(reference)
     species = register.require(lot.species_name)
 
@@ -182,7 +182,7 @@ def record_seed_weight(
 @click.pass_obj
 def show_seed_weight(context: Context, reference: str) -> None:
     """Every thousand seed weight determination on a lot."""
-    station = open_station(context.database)
+    station = context.station()
     station.lots.require(reference)
     stored = station.seed_weight.for_lot(reference)
 

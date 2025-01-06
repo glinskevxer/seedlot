@@ -45,18 +45,43 @@ __all__ = ["cli", "main"]
 )
 @click.option("--quiet", "-q", is_flag=True, help="Print results and nothing else.")
 @click.option(
+    "--journal",
+    type=click.Choice(["wal", "delete", "memory"]),
+    default="wal",
+    show_default=True,
+    envvar="ARC_JOURNAL",
+    help="SQLite journal mode. Use delete when the database is on a share.",
+)
+@click.option(
+    "--sync",
+    type=click.Choice(["full", "normal", "off"]),
+    default="full",
+    show_default=True,
+    envvar="ARC_SYNC",
+    help="How hard SQLite works to survive a power cut. Leave this alone.",
+)
+@click.option(
     "--today",
     type=click.DateTime(formats=["%Y-%m-%d"]),
     default=None,
     help="Record the work against this day rather than today.",
 )
 @click.pass_context
-def cli(ctx: click.Context, database: Path, quiet: bool, today: datetime | None) -> None:
+def cli(
+    ctx: click.Context,
+    database: Path,
+    quiet: bool,
+    journal: str,
+    sync: str,
+    today: datetime | None,
+) -> None:
     """Analysis, reporting and certification for the seed testing station."""
     ctx.obj = Context(
         database=database,
         quiet=quiet,
         today=today.date() if today is not None else date.today(),
+        journal_mode=journal,
+        synchronous=sync,
     )
 
 

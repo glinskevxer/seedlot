@@ -14,7 +14,6 @@ from datetime import datetime
 import click
 
 from arc.cli.context import Context
-from arc.cli.station import open_station
 from arc.germination.dormancy import assess, check_treatment, treatments_for
 from arc.germination.model import GerminationTest, Replicate, Treatment, check_test
 from arc.germination.outcome import decide
@@ -84,7 +83,7 @@ def record(
     treatment: str,
 ) -> None:
     """Record one germination test and say what it comes to."""
-    station = open_station(context.database)
+    station = context.station()
     lot = station.lots.require(reference)
 
     test = GerminationTest(
@@ -129,7 +128,7 @@ def record(
 @click.pass_obj
 def show(context: Context, reference: str) -> None:
     """Every germination test on a lot, and what the station will report."""
-    station = open_station(context.database)
+    station = context.station()
     station.lots.require(reference)
     tests = station.germination.for_lot(reference)
 

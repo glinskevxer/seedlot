@@ -6,7 +6,6 @@ import click
 
 from arc.certificates.model import CertificateKind
 from arc.cli.context import Context
-from arc.cli.station import open_station
 from arc.errors import RuleBroken
 from arc.workflow.issuing import gather, issue
 
@@ -29,7 +28,7 @@ def certificate() -> None:
 @click.pass_obj
 def check(context: Context, reference: str) -> None:
     """What the station has on a lot, and whether it is enough to certify."""
-    station = open_station(context.database)
+    station = context.station()
     lot = station.lots.require(reference)
 
     gathered = gather(
@@ -73,7 +72,7 @@ def check(context: Context, reference: str) -> None:
 @click.pass_obj
 def issue_command(context: Context, reference: str, kind: str, signed_by: str) -> None:
     """Issue a certificate for a lot."""
-    station = open_station(context.database)
+    station = context.station()
 
     try:
         issued = issue(
@@ -102,7 +101,7 @@ def issue_command(context: Context, reference: str, kind: str, signed_by: str) -
 @click.pass_obj
 def show(context: Context, number: str) -> None:
     """One certificate, as it reads."""
-    station = open_station(context.database)
+    station = context.station()
     found = station.certificates.require(number)
     results = found.results
 
@@ -142,6 +141,6 @@ def show(context: Context, number: str) -> None:
 @click.pass_obj
 def withdraw(context: Context, number: str) -> None:
     """Withdraw a certificate. The row stays; somebody holds a copy."""
-    station = open_station(context.database)
+    station = context.station()
     station.certificates.withdraw(number, on=context.today)
     context.say(f"withdrawn {number}")

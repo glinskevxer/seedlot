@@ -14,7 +14,6 @@ from pathlib import Path
 import click
 
 from arc.cli.context import Context
-from arc.cli.station import open_station
 from arc.reporting.registers import (
     certificate_register,
     merchant_register,
@@ -34,7 +33,7 @@ def report() -> None:
 @click.pass_obj
 def work(context: Context) -> None:
     """What is open, oldest first. The Monday morning list."""
-    station = open_station(context.database)
+    station = context.station()
     items = work_in_progress(station.lots, station.certificates)
 
     if not items:
@@ -61,7 +60,7 @@ def work(context: Context) -> None:
 @click.pass_obj
 def merchant(context: Context, name: str) -> None:
     """One merchant's open lots and what has been issued on each."""
-    station = open_station(context.database)
+    station = context.station()
     found = merchant_register(station.lots, station.certificates, name)
 
     if not found:
@@ -101,7 +100,7 @@ def merchant(context: Context, name: str) -> None:
 @click.pass_obj
 def certificates(context: Context, start: datetime, end: datetime, out: Path | None) -> None:
     """The certificate register, as the auditor asks for it."""
-    station = open_station(context.database)
+    station = context.station()
 
     last = end.date() if end is not None else context.today
     first = start.date() if start is not None else last.replace(day=1)
@@ -139,7 +138,7 @@ def expiring(context: Context, within: int) -> None:
     if within < 1:
         raise click.BadParameter("look at least one day ahead")
 
-    station = open_station(context.database)
+    station = context.station()
     horizon = context.today + timedelta(days=within)
 
     found = []
@@ -172,7 +171,7 @@ def expiring(context: Context, within: int) -> None:
 @click.pass_obj
 def searches(context: Context, out: Path | None) -> None:
     """Every search for other species, as a spreadsheet."""
-    station = open_station(context.database)
+    station = context.station()
     csv_text = other_seed_register(station.lots, station.other_seed)
 
     if out is None:

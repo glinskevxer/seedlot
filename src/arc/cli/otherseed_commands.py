@@ -11,7 +11,7 @@ from __future__ import annotations
 import click
 
 from arc.cli.context import Context
-from arc.cli.station import open_station, weight_option
+from arc.cli.station import weight_option
 from arc.otherseed.model import Finding, OtherSeedSearch, SearchKind
 from arc.otherseed.rules import check_search, required_weight_g
 from arc.otherseed.tolerance import compare
@@ -91,7 +91,7 @@ def record(
     analyst: str,
 ) -> None:
     """Record one search through one working sample."""
-    station = open_station(context.database)
+    station = context.station()
     lot = station.lots.require(reference)
     species = register.require(lot.species_name)
 
@@ -126,7 +126,7 @@ def record(
 @click.pass_obj
 def show(context: Context, reference: str) -> None:
     """Every search against one lot."""
-    station = open_station(context.database)
+    station = context.station()
     station.lots.require(reference)
     searches = station.other_seed.for_lot(reference)
 
@@ -147,7 +147,7 @@ def show(context: Context, reference: str) -> None:
 @click.pass_obj
 def compare_counts(context: Context, reference: str, species_name: str) -> None:
     """Whether two searches of one lot agree about one species."""
-    station = open_station(context.database)
+    station = context.station()
     station.lots.require(reference)
     counts = station.other_seed.counts_of(reference, species_name)
 
