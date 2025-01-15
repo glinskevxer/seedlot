@@ -232,6 +232,42 @@ MIGRATIONS: tuple[Migration, ...] = (
             "create index germination_treatment_idx on germination_test (treatment)",
         ),
     ),
+    Migration(
+        version=7,
+        name="retained samples and what has been drawn from them",
+        statements=(
+            """
+            create table retained_sample (
+                lot_reference    text primary key references lot (reference),
+                species_name     text not null,
+                remaining_g      text not null,
+                held_from        text not null,
+                certificate_kind text,
+                disposed_on      text,
+                disposal_reason  text,
+                constraint disposal_has_a_reason_ck check (
+                    (disposed_on is null and disposal_reason is null)
+                    or (disposed_on is not null and disposal_reason is not null)
+                )
+            )
+            """,
+            """
+            create table retained_draw (
+                id            integer primary key autoincrement,
+                lot_reference text not null references retained_sample (lot_reference),
+                determination text not null,
+                weight_g      text not null,
+                drawn_on      text not null,
+                analyst       text not null
+            )
+            """,
+            "create index retained_draw_lot_idx on retained_draw (lot_reference)",
+            """
+            create index retained_held_idx on retained_sample (held_from)
+                where disposed_on is null
+            """,
+        ),
+    ),
 )
 
 
