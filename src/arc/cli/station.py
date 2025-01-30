@@ -20,6 +20,7 @@ from arc.storage.determinations import GerminationRepository, PurityRepository
 from arc.storage.lots import LotRepository
 from arc.storage.otherseed import OtherSeedRepository
 from arc.storage.physical import MoistureRepository, SeedWeightRepository
+from arc.storage.retention import RetentionRepository
 from arc.storage.schema import connect, migrate
 
 __all__ = ["Station", "open_station", "weight_option"]
@@ -37,6 +38,7 @@ class Station:
     seed_weight: SeedWeightRepository
     other_seed: OtherSeedRepository
     certificates: CertificateRepository
+    retention: RetentionRepository
 
     def close(self) -> None:
         self.connection.close()
@@ -73,6 +75,7 @@ def open_station(
         seed_weight=SeedWeightRepository(connection),
         other_seed=OtherSeedRepository(connection),
         certificates=CertificateRepository(connection),
+        retention=RetentionRepository(connection),
     )
 
 

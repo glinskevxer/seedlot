@@ -38,6 +38,8 @@ from arc.storage.determinations import GerminationRepository, PurityRepository
 from arc.storage.lots import LotRepository
 from arc.storage.otherseed import OtherSeedRepository, StoredSearch
 from arc.storage.physical import MoistureRepository, SeedWeightRepository
+from arc.storage.retention import RetentionRepository
+from arc.workflow.retaining import retain
 
 __all__ = ["gather", "issue"]
 
@@ -202,6 +204,7 @@ def issue(
     moisture: MoistureRepository | None = None,
     seed_weight: SeedWeightRepository | None = None,
     other_seed: OtherSeedRepository | None = None,
+    retention: RetentionRepository | None = None,
 ) -> Certificate:
     """Issues a certificate for a lot, or refuses with every reason it cannot.
 
@@ -244,6 +247,9 @@ def issue(
         raise RuleBroken(problems)
 
     certificates.issue(certificate)
+
+    if retention is not None:
+        retain(certificate, register.require(lot.species_name), retention, on=on)
 
     if lot.status is LotStatus.IN_TEST:
         lot.move_to(LotStatus.REPORTED)

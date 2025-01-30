@@ -84,6 +84,7 @@ def issue_command(context: Context, reference: str, kind: str, signed_by: str) -
             purity=station.purity,
             germination=station.germination,
             certificates=station.certificates,
+            retention=station.retention,
             moisture=station.moisture,
             seed_weight=station.seed_weight,
         )
