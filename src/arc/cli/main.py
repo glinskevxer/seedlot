@@ -28,6 +28,7 @@ from arc.cli.physical_commands import moisture, seedweight
 from arc.cli.purity_commands import purity
 from arc.cli.report_commands import report
 from arc.cli.species_commands import species
+from arc.cli.store_commands import store
 from arc.errors import ArcError, NotFound, RuleBroken
 
 __all__ = ["cli", "main"]
@@ -94,6 +95,7 @@ cli.add_command(report)
 cli.add_command(moisture)
 cli.add_command(seedweight)
 cli.add_command(otherseed)
+cli.add_command(store)
 
 
 @cli.command()
