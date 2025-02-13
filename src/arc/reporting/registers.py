@@ -21,12 +21,14 @@ from arc.reporting.csv_writer import CsvWriter
 from arc.storage.certificates import CertificateRepository
 from arc.storage.lots import LotRepository
 from arc.storage.otherseed import OtherSeedRepository
+from arc.storage.retention import RetentionRepository
 
 __all__ = [
     "certificate_register",
     "work_in_progress",
     "merchant_register",
     "other_seed_register",
+    "store_register",
     "WorkItem",
 ]
 
@@ -147,6 +149,48 @@ def _findings_summary(search: OtherSeedSearch) -> str:
         for finding in search.findings
         if finding.count > 0
     )
+
+
+def store_register(
+    retention: RetentionRepository,
+    *,
+    on: date,
+) -> str:
+    """Everything the sample store is holding, and how close it is to going.
+
+    Sorted by how long is left rather than by lot, because the person reading
+    it is standing in front of the shelves deciding what to pull, and the ones
+    at the top are the ones they came for.
+    """
+    sheet = CsvWriter(
+        [
+            "lot",
+            "species",
+            "remaining g",
+            "held from",
+            "hold until",
+            "days left",
+            "certificate",
+            "due",
+        ]
+    )
+
+    held = sorted(retention.held(), key=lambda sample: sample.hold_until)
+
+    for sample in held:
+        kind = sample.certificate_kind
+        sheet.row(
+            sample.lot_reference,
+            sample.species_name,
+            sample.remaining_g,
+            sample.held_from,
+            sample.hold_until,
+            sample.days_left_on(on),
+            "none" if kind is None else kind.value,
+            "yes" if sample.is_due_for_disposal_on(on) else "no",
+        )
+
+    return sheet.to_csv()
 
 
 @dataclass(frozen=True)

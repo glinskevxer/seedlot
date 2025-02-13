@@ -18,6 +18,7 @@ from arc.reporting.registers import (
     certificate_register,
     merchant_register,
     other_seed_register,
+    store_register,
     work_in_progress,
 )
 
@@ -173,6 +174,27 @@ def searches(context: Context, out: Path | None) -> None:
     """Every search for other species, as a spreadsheet."""
     station = context.station()
     csv_text = other_seed_register(station.lots, station.other_seed)
+
+    if out is None:
+        click.echo(csv_text)
+        return
+
+    out.write_text(csv_text, encoding="utf-8")
+    context.say(f"written to {out}")
+
+
+@report.command("store")
+@click.option(
+    "--out",
+    type=click.Path(path_type=Path, dir_okay=False),
+    default=None,
+    help="Write to a file rather than to the terminal.",
+)
+@click.pass_obj
+def store_report(context: Context, out: Path | None) -> None:
+    """What the sample store is holding, closest to its date first."""
+    station = context.station()
+    csv_text = store_register(station.retention, on=context.today)
 
     if out is None:
         click.echo(csv_text)
