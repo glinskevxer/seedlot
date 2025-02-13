@@ -268,6 +268,38 @@ MIGRATIONS: tuple[Migration, ...] = (
             """,
         ),
     ),
+    Migration(
+        version=8,
+        name="referee comparisons against another laboratory",
+        statements=(
+            """
+            create table referee_comparison (
+                id                 integer primary key autoincrement,
+                lot_reference      text not null references lot (reference),
+                certificate_number text not null,
+                determination      text not null,
+                ours               text not null,
+                theirs             text not null,
+                allowance          text not null,
+                verdict            text not null,
+                other_laboratory   text not null,
+                raised_by          text not null,
+                compared_on        text not null,
+                constraint referee_verdict_ck check (verdict in ('agree', 'refer')),
+                constraint referee_determination_ck
+                    check (determination in ('purity', 'germination'))
+            )
+            """,
+            """
+            create index referee_lot_idx
+                on referee_comparison (lot_reference, compared_on)
+            """,
+            """
+            create index referee_certificate_idx
+                on referee_comparison (certificate_number)
+            """,
+        ),
+    ),
 )
 
 
