@@ -26,6 +26,7 @@ from arc.cli.lot_commands import lot
 from arc.cli.otherseed_commands import otherseed
 from arc.cli.physical_commands import moisture, seedweight
 from arc.cli.purity_commands import purity
+from arc.cli.referee_commands import referee
 from arc.cli.report_commands import report
 from arc.cli.species_commands import species
 from arc.cli.store_commands import store
@@ -96,6 +97,7 @@ cli.add_command(moisture)
 cli.add_command(seedweight)
 cli.add_command(otherseed)
 cli.add_command(store)
+cli.add_command(referee)
 
 
 @cli.command()
