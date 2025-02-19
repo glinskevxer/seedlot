@@ -188,9 +188,7 @@ class Determinations:
             return f"{self.germination_percent} percent normal seedlings"
         treatment = self.germination_treatment
         assert treatment is not None
-        return (
-            f"{self.germination_percent} percent normal seedlings " f"after {treatment.value}"
-        )
+        return f"{self.germination_percent} percent normal seedlings after {treatment.value}"
 
     def determinations(self) -> tuple[str, ...]:
         """The names of everything that was actually done."""

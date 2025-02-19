@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling==1.21.1"]
+requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -7,24 +7,33 @@ name = "arc"
 version = "0.1.0"
 description = "Analysis, reporting and certification for a seed testing laboratory"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "UNLICENSED" }
 authors = [{ name = "Ravenscar Seed Testing Station" }]
-dependencies = ["click==8.1.7"]
+keywords = ["seed testing", "ista", "germination", "purity", "laboratory"]
+classifiers = [
+    "Private :: Do Not Upload",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = ["click==8.1.8"]
 
 [project.scripts]
 arc = "arc.cli.main:cli"
 
 [project.optional-dependencies]
 dev = [
-    "pytest==8.0.0",
-    "pytest-cov==4.1.0",
-    "ruff==0.2.1",
-    "mypy==1.8.0",
+    "pytest==8.3.4",
+    "pytest-cov==6.0.0",
+    "ruff==0.9.6",
+    "mypy==1.15.0",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/arc"]
+# The marker has to be listed as well as present, or a wheel built from a
+# clean checkout ships without it and every caller loses the annotations.
+artifacts = ["src/arc/py.typed"]
 
 [tool.pytest.ini_options]
 # Every test in the repository lives under /tests, so pytest is pointed there
@@ -39,7 +48,7 @@ markers = [
 
 [tool.ruff]
 line-length = 96
-target-version = "py311"
+target-version = "py312"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
@@ -52,7 +61,7 @@ select = ["E", "F", "I", "N", "UP", "B", "SIM", "RET", "C4"]
 "src/arc/errors.py" = ["N818"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 files = ["src", "tests"]
 # The tests directory holds two conftest.py files and no __init__.py, which
@@ -61,3 +70,14 @@ files = ["src", "tests"]
 explicit_package_bases = true
 namespace_packages = true
 mypy_path = "src"
+
+[[tool.mypy.overrides]]
+# The station's own code is checked strictly. The tests are checked for the
+# mistakes that matter in a test, which are calling something that does not
+# exist and comparing two things that can never be equal, and not for whether
+# a fixture argument carries an annotation. Requiring those would add three
+# hundred annotations that say nothing a reader did not already know.
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false

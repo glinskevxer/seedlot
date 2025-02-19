@@ -219,8 +219,7 @@ class TestThrowingItOut:
 
         with pytest.raises(sqlite3.IntegrityError):
             db.execute(
-                "update retained_sample set disposed_on = '2025-12-03' "
-                "where lot_reference = ?",
+                "update retained_sample set disposed_on = '2025-12-03' where lot_reference = ?",
                 (LOT,),
             )
 

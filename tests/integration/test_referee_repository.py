@@ -54,8 +54,8 @@ def record(
     laboratory: str = "NL-0510 Wageningen",
     raised_by: str = "Ravenscar Grain",
     on: date = COMPARED,
-) -> int:
-    return referee.record(
+) -> None:
+    referee.record(
         LOT,
         number,
         determination,

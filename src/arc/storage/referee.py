@@ -106,7 +106,7 @@ class RefereeRepository:
 
     def for_certificate(self, number: str) -> tuple[StoredComparison, ...]:
         rows = self._connection.execute(
-            "select * from referee_comparison where certificate_number = ? " "order by id asc",
+            "select * from referee_comparison where certificate_number = ? order by id asc",
             (number,),
         ).fetchall()
         return tuple(self._to_comparison(row) for row in rows)

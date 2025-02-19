@@ -228,7 +228,7 @@ MIGRATIONS: tuple[Migration, ...] = (
         statements=(
             # Existing rows are tests that had nothing done to the sample,
             # which is exactly what the default says, so no backfill is needed.
-            "alter table germination_test add column treatment text not null " "default 'none'",
+            "alter table germination_test add column treatment text not null default 'none'",
             "create index germination_treatment_idx on germination_test (treatment)",
         ),
     ),

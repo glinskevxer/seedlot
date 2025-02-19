@@ -123,8 +123,7 @@ def show(context: Context, number: str) -> None:
     if results.has_germination:
         valid_until = found.germination_valid_until()
         click.echo(
-            f"  germination {results.germination_percent} percent, "
-            f"quotable to {valid_until}"
+            f"  germination {results.germination_percent} percent, quotable to {valid_until}"
         )
     if results.moisture_percent is not None:
         click.echo(f"  moisture    {results.moisture_percent} percent")

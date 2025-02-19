@@ -48,8 +48,7 @@ def work(context: Context) -> None:
             f"{item.certificates_issued} issued" if item.certificates_issued else "none issued"
         )
         click.echo(
-            f"{marker} {lot.reference}  {lot.species_name:<22} "
-            f"{lot.status.value:<10} {issued}"
+            f"{marker} {lot.reference}  {lot.species_name:<22} {lot.status.value:<10} {issued}"
         )
 
     context.say("")
