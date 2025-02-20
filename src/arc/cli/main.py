@@ -102,6 +102,32 @@ cli.add_command(referee)
 
 @cli.command()
 @pass_context
+def doctor(context: Context) -> None:
+    """Everything about this database that ought not to be true.
+
+    Exits non zero when it finds something serious, so it can be the thing a
+    Monday morning cron job runs and nobody reads unless it complains.
+    """
+    from arc.tools.doctor import Severity, examine, held_samples
+
+    opened = context.station()
+    findings = examine(opened.connection, on=context.today)
+
+    context.say(f"{held_samples(opened.connection)} samples held")
+
+    if not findings:
+        click.echo("nothing to report")
+        return
+
+    for finding in findings:
+        click.echo(str(finding))
+
+    if any(finding.severity is Severity.SERIOUS for finding in findings):
+        raise SystemExit(1)
+
+
+@cli.command()
+@pass_context
 def station(context: Context) -> None:
     """Who this station is, as it appears on a certificate."""
     click.echo(f"{STATION_NAME} ({STATION_CODE})")
