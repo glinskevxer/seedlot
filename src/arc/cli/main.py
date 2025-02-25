@@ -101,6 +101,40 @@ cli.add_command(referee)
 
 
 @cli.command()
+@click.option(
+    "--to",
+    "destination",
+    type=click.Path(path_type=Path, file_okay=False),
+    default=Path("var/backups"),
+    show_default=True,
+    help="Directory the copy goes in.",
+)
+@click.option("--overwrite", is_flag=True, help="Replace today's copy if it is there.")
+@pass_context
+def backup(context: Context, destination: Path, overwrite: bool) -> None:
+    """Take a checked copy of the database.
+
+    Named for the day it was taken, so running it twice in a morning is a no
+    op unless it is told otherwise, and a week of them sorts by name.
+    """
+    from arc.tools.backup import backup_to, dated_name
+
+    opened = context.station()
+    target = destination / dated_name(context.today)
+
+    try:
+        result = backup_to(opened.connection, target, overwrite=overwrite)
+    except FileExistsError as already:
+        click.echo(f"refused: {already}", err=True)
+        click.echo("use --overwrite to replace it", err=True)
+        raise SystemExit(2) from already
+
+    click.echo(result.describe())
+    if not result.verified:
+        raise SystemExit(1)
+
+
+@cli.command()
 @pass_context
 def doctor(context: Context) -> None:
     """Everything about this database that ought not to be true.
