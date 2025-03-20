@@ -78,12 +78,18 @@ def backup_to(
 def verify(path: Path) -> bool:
     """Opens a copy and checks it is a database this release could work with.
 
-    Three questions, in the order they can fail: does SQLite think the file is
-    intact, has it taken every migration this release knows about, and is there
-    anything in it. The third is not an error on its own, which is why it does
-    not fail here, but a copy that opens and holds nothing is worth the two
-    lines it takes to notice.
+    Two questions, in the order they can fail: does SQLite think the file is
+    intact, and has it taken every migration this release knows about. The
+    second is what catches a copy of last release's database, which opens
+    perfectly and would put the station back a version if it were restored.
+
+    A path that is not there is not a backup, and asking about it must not
+    bring one into existence. SQLite would happily create an empty database
+    at the name, so the file is checked for first.
     """
+    if not path.exists():
+        return False
+
     try:
         opened = connect(path, journal_mode="delete", synchronous="off")
     except sqlite3.DatabaseError:

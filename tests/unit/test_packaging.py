@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import tomllib
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -18,7 +19,7 @@ PROJECT = Path(__file__).resolve().parents[2] / "pyproject.toml"
 
 
 @pytest.fixture(scope="module")
-def config() -> dict:
+def config() -> dict[str, Any]:
     return tomllib.loads(PROJECT.read_text(encoding="utf-8"))
 
 
@@ -34,7 +35,7 @@ class TestTheStationItSaysItIs:
 
 
 class TestTheVersionMatches:
-    def test_the_package_and_the_project_agree(self, config) -> None:
+    def test_the_package_and_the_project_agree(self, config: dict[str, Any]) -> None:
         assert config["project"]["version"] == arc.__version__
 
 
