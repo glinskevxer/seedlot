@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from datetime import date
 
-from arc.errors import RuleBroken
+from arc.errors import Rule, RuleBroken
 from arc.lots.model import SeedLot
 from arc.lots.rules import check_lot, sublots_needed
 from arc.sampling.plan import SamplingPlan, plan_for
@@ -60,6 +60,18 @@ def book_in(
     accepted = replace(lot, species_name=species.botanical_name)
 
     broken = check_lot(accepted, species)
+
+    if lots.find(accepted.reference) is not None:
+        # A merchant re-sending last week's list must not quietly reset a lot
+        # that is halfway through being tested. Booking in happens once.
+        broken.append(
+            Rule(
+                "LOT_ALREADY_BOOKED_IN",
+                f"{accepted.reference} was booked in already",
+                str(accepted.reference),
+            )
+        )
+
     if broken:
         raise RuleBroken(broken)
 

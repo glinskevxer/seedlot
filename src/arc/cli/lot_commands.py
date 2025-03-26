@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from pathlib import Path
 
 import click
 
 from arc.cli.context import Context
 from arc.cli.station import weight_option
 from arc.errors import RuleBroken
+from arc.importing.merchant_csv import parse
 from arc.lots.model import ContainerKind, LotReference, SeedLot
 from arc.workflow.booking import book_in, split_advice
 
@@ -121,3 +123,67 @@ def list_lots(context: Context, species: str | None) -> None:
             f"{item.reference}  {item.species_name:<22} "
             f"{item.declared_weight_kg:>9} kg  {item.status.value}"
         )
+
+
+@lot.command("import")
+@click.argument("path", type=click.Path(path_type=Path, dir_okay=False, exists=True))
+@click.option("--merchant", required=True, help="Whose list this is.")
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Say what would happen and write nothing.",
+)
+@click.pass_obj
+def import_lots(context: Context, path: Path, merchant: str, dry_run: bool) -> None:
+    """Book in a merchant's list of lots.
+
+    Two kinds of thing can be wrong and they are reported separately. A row the
+    file cannot turn into a lot at all is the merchant's to fix. A lot the
+    station will not accept, because it is over the maximum weight for the
+    species, is a conversation about splitting it, and the advice for that is
+    printed with it.
+    """
+    read = parse(path.read_text(encoding="utf-8"), merchant)
+
+    for problem in read.problems:
+        click.echo(str(problem), err=True)
+
+    if not read.lots:
+        click.echo(read.summary(), err=True)
+        raise SystemExit(2)
+
+    station = context.station()
+    booked = 0
+    refused = 0
+
+    if dry_run:
+        # The connection is in autocommit, so there is nothing for a rollback
+        # to undo unless a transaction is opened first. Without this the dry
+        # run books everything in and then says it did not.
+        station.connection.execute("begin")
+
+    for incoming in read.lots:
+        try:
+            accepted = book_in(incoming, station.lots, on=context.today)
+        except RuleBroken as broken:
+            refused += 1
+            for rule in broken.rules:
+                click.echo(f"{incoming.reference}: {rule.detail}", err=True)
+            needed, advice = split_advice(incoming)
+            if needed > 1:
+                click.echo(f"{incoming.reference}: {advice}", err=True)
+            continue
+
+        booked += 1
+        if not dry_run:
+            context.say(f"booked in {accepted.reference}")
+
+    if dry_run:
+        station.connection.execute("rollback")
+        click.echo(f"dry run: {booked} would be booked in, {refused} refused")
+        return
+
+    click.echo(f"{booked} booked in, {refused} refused, {len(read.problems)} rows to fix")
+
+    if refused or read.problems:
+        raise SystemExit(1)
