@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import click
 
-from arc.certificates.model import CertificateKind
+from arc import STATION_CODE, STATION_NAME
+from arc.certificates.model import Certificate, CertificateKind
 from arc.cli.context import Context
 from arc.errors import RuleBroken
+from arc.reporting.certificate_form import render_many
 from arc.workflow.issuing import gather, issue
 
 __all__ = ["certificate"]
@@ -144,3 +148,50 @@ def withdraw(context: Context, number: str) -> None:
     station = context.station()
     station.certificates.withdraw(number, on=context.today)
     context.say(f"withdrawn {number}")
+
+
+@certificate.command("print")
+@click.argument("number", required=False)
+@click.option("--lot", "lot_reference", default=None, help="Every certificate on a lot.")
+@click.option(
+    "--out",
+    type=click.Path(path_type=Path, dir_okay=False),
+    default=None,
+    help="Write to a file rather than to the terminal.",
+)
+@click.pass_obj
+def print_form(
+    context: Context,
+    number: str | None,
+    lot_reference: str | None,
+    out: Path | None,
+) -> None:
+    """Print a certificate onto the form.
+
+    Either one number, or every certificate on one lot. Printing a lot's whole
+    history is what the station does when a merchant disputes something, and
+    the run comes out separated by form feeds so the stationery advances.
+    """
+    if (number is None) == (lot_reference is None):
+        raise click.UsageError("give either a certificate number or --lot, not both")
+
+    station = context.station()
+
+    wanted: tuple[Certificate, ...]
+    if number is not None:
+        wanted = (station.certificates.require(number),)
+    else:
+        station.lots.require(str(lot_reference))
+        wanted = station.certificates.for_lot(str(lot_reference))
+        if not wanted:
+            click.echo("nothing has been issued on that lot", err=True)
+            raise SystemExit(2)
+
+    form = render_many(wanted, station_name=STATION_NAME, station_code=STATION_CODE)
+
+    if out is None:
+        click.echo(form)
+        return
+
+    out.write_text(form, encoding="utf-8")
+    context.say(f"{len(wanted)} written to {out}")
