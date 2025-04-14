@@ -17,6 +17,7 @@ import click
 
 from arc.storage.certificates import CertificateRepository
 from arc.storage.determinations import GerminationRepository, PurityRepository
+from arc.storage.journal import Journal
 from arc.storage.lots import LotRepository
 from arc.storage.otherseed import OtherSeedRepository
 from arc.storage.physical import MoistureRepository, SeedWeightRepository
@@ -41,6 +42,7 @@ class Station:
     certificates: CertificateRepository
     retention: RetentionRepository
     referee: RefereeRepository
+    journal: Journal
 
     def close(self) -> None:
         self.connection.close()
@@ -79,6 +81,7 @@ def open_station(
         certificates=CertificateRepository(connection),
         retention=RetentionRepository(connection),
         referee=RefereeRepository(connection),
+        journal=Journal(connection),
     )
 
 

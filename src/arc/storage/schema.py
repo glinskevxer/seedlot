@@ -300,6 +300,24 @@ MIGRATIONS: tuple[Migration, ...] = (
             """,
         ),
     ),
+    Migration(
+        version=9,
+        name="the day book",
+        statements=(
+            """
+            create table journal_entry (
+                id       integer primary key autoincrement,
+                at       text not null,
+                operator text not null,
+                action   text not null,
+                subject  text not null,
+                detail   text not null default ''
+            )
+            """,
+            "create index journal_at_idx on journal_entry (at)",
+            "create index journal_subject_idx on journal_entry (subject, at)",
+        ),
+    ),
 )
 
 
