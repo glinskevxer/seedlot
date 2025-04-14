@@ -90,6 +90,9 @@ def draw(
     taking = needed_for(wanted, species) if weight_g is None else weight_option(weight_g)
     left = station.retention.draw(reference, wanted, taking, on=context.today, analyst=analyst)
 
+    context.record(
+        station, "drew from the store for", reference, f"{taking} g for a {wanted.value}"
+    )
     context.say(f"drew {taking} g for a {wanted.value}")
     click.echo(f"{left.remaining_g} g left")
 
@@ -132,6 +135,7 @@ def dispose(context: Context, reference: str, reason: str, force: bool) -> None:
         )
 
     station.retention.dispose(reference, on=context.today, reason=why)
+    context.record(station, "disposed of the sample for", reference, why.value)
     context.say(f"{reference} disposed, {why.value}")
 
 

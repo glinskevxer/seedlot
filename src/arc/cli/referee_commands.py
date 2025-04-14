@@ -84,6 +84,13 @@ def compare(
         on=context.today,
     )
 
+    context.record(
+        station,
+        "compared with another laboratory for",
+        str(lot.reference),
+        f"{laboratory}: {comparison.verdict.value}",
+    )
+
     click.echo(comparison.explain())
     if comparison.verdict.needs_a_third_opinion:
         raise SystemExit(1)

@@ -97,6 +97,9 @@ def issue_command(context: Context, reference: str, kind: str, signed_by: str) -
             click.echo(f"refused: {rule.detail}", err=True)
         raise SystemExit(2) from refused
 
+    context.record(
+        station, "issued", str(issued.number), f"against {reference}, signed {signed_by}"
+    )
     context.say(f"issued against {reference}")
     click.echo(str(issued.number))
 

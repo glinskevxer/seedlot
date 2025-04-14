@@ -9,7 +9,7 @@ to find.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import click
@@ -31,11 +31,14 @@ class Context:
         today: date,
         journal_mode: str = "wal",
         synchronous: str = "full",
+        operator: str = "unknown",
     ) -> None:
         self.database = database
         self.quiet = quiet
         self.journal_mode = journal_mode
         self.synchronous = synchronous
+        #: Whoever is at the keyboard. Goes in the day book beside what they did.
+        self.operator = operator
         #: The day the work is being recorded against. Normally today, but the
         #: bench sheets are sometimes typed up the next morning and the dates
         #: on them have to be the dates the work was actually done.
@@ -53,6 +56,26 @@ class Context:
             journal_mode=self.journal_mode,
             synchronous=self.synchronous,
         )
+
+    def now(self) -> datetime:
+        """The moment to stamp a day book entry with.
+
+        The date comes from --today so that a Friday's work typed up on Monday
+        is written down as Friday's. The time of day comes from the clock,
+        because nobody is going to type that in and the order things happened
+        in is worth keeping.
+        """
+        return datetime.combine(self.today, datetime.now().time().replace(microsecond=0))
+
+    def record(
+        self,
+        station: Station,
+        action: str,
+        subject: str,
+        detail: str = "",
+    ) -> None:
+        """Writes what just happened into the day book."""
+        station.journal.record(self.operator, action, subject, at=self.now(), detail=detail)
 
     def say(self, message: str) -> None:
         """Prints progress, which --quiet turns off."""

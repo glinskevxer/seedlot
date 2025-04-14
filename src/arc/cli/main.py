@@ -12,6 +12,7 @@ is not the person who would fix a stack trace.
 
 from __future__ import annotations
 
+import getpass
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -63,6 +64,12 @@ __all__ = ["cli", "main"]
     help="How hard SQLite works to survive a power cut. Leave this alone.",
 )
 @click.option(
+    "--operator",
+    default=None,
+    envvar="ARC_OPERATOR",
+    help="Who is at the keyboard. Defaults to the account name.",
+)
+@click.option(
     "--today",
     type=click.DateTime(formats=["%Y-%m-%d"]),
     default=None,
@@ -75,6 +82,7 @@ def cli(
     quiet: bool,
     journal: str,
     sync: str,
+    operator: str | None,
     today: datetime | None,
 ) -> None:
     """Analysis, reporting and certification for the seed testing station."""
@@ -84,6 +92,7 @@ def cli(
         today=today.date() if today is not None else date.today(),
         journal_mode=journal,
         synchronous=sync,
+        operator=operator or _who(),
     )
 
 
@@ -161,11 +170,49 @@ def doctor(context: Context) -> None:
 
 
 @cli.command()
+@click.option("--subject", default=None, help="Only entries about one thing.")
+@click.option("--operator", "who", default=None, help="Only one person's entries.")
+@click.option("--limit", type=int, default=20, show_default=True)
+@pass_context
+def journal(context: Context, subject: str | None, who: str | None, limit: int) -> None:
+    """The day book: who did what, and when."""
+    opened = context.station()
+
+    if subject is not None:
+        entries = opened.journal.for_subject(subject)
+    elif who is not None:
+        entries = opened.journal.by_operator(who)
+    else:
+        entries = opened.journal.latest(limit)
+
+    if not entries:
+        click.echo("nothing in the day book")
+        return
+
+    for entry in entries:
+        click.echo(entry.describe())
+
+
+@cli.command()
 @pass_context
 def station(context: Context) -> None:
     """Who this station is, as it appears on a certificate."""
     click.echo(f"{STATION_NAME} ({STATION_CODE})")
     context.say(f"database {context.database}")
+    context.say(f"operator {context.operator}")
+
+
+def _who() -> str:
+    """Whoever is logged in, or a placeholder when even that fails.
+
+    getuser reads the environment before it reads the password database, and
+    on a machine with none of those set it raises rather than returning
+    anything, which is not a reason for a command to fail.
+    """
+    try:
+        return getpass.getuser()
+    except Exception:
+        return "unknown"
 
 
 def main(argv: list[str] | None = None) -> int:

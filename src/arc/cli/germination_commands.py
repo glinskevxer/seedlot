@@ -107,6 +107,13 @@ def record(
 
     station.germination.record(test)
 
+    context.record(
+        station,
+        "recorded a germination for",
+        reference,
+        f"{test.mean_normal} per cent, by {analyst}",
+    )
+
     spread = check_range(test.mean_normal, test.replicate_range)
     dormancy = assess(test)
     context.say(f"recorded against {reference}")

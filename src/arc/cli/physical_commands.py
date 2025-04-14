@@ -92,6 +92,8 @@ def record_moisture(
         combined_percent=combined,
     )
 
+    context.record(station, "recorded a moisture for", reference, f"{result.percent} per cent")
+
     context.say(f"recorded against {reference}")
     click.echo(f"moisture {result.percent} percent")
 

@@ -112,6 +112,8 @@ def record(
 
     station.other_seed.record(reference, search, searched_on=context.today)
 
+    context.record(station, "searched for other seed in", reference, search.describe())
+
     context.say(f"recorded against {reference}")
     click.echo(search.describe())
 

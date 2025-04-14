@@ -65,9 +65,9 @@ def book_in_command(
         origin_country=origin.upper(),
     )
 
-    lots = context.station().lots
+    station = context.station()
     try:
-        booked = book_in(incoming, lots, on=context.today)
+        booked = book_in(incoming, station.lots, on=context.today)
     except RuleBroken as refused:
         for rule in refused.rules:
             click.echo(f"refused: {rule.detail}", err=True)
@@ -75,6 +75,13 @@ def book_in_command(
         if needed > 1:
             click.echo(advice, err=True)
         raise SystemExit(2) from refused
+
+    context.record(
+        station,
+        "booked in",
+        str(booked.reference),
+        f"{booked.lot.declared_weight_kg} kg of {booked.lot.species_name}",
+    )
 
     context.say(f"booked in {booked.reference}")
     for line in booked.plan.docket_lines():

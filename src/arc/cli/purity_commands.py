@@ -68,6 +68,7 @@ def record(
         reference, analysis, result, analysed_on=context.today, is_duplicate=duplicate
     )
 
+    context.record(station, "recorded a purity for", reference, f"by {analyst}")
     context.say(f"recorded against {reference}")
     click.echo(f"pure seed    {result.pure_seed}")
     click.echo(f"other seed   {result.other_seed}")
