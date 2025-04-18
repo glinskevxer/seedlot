@@ -77,6 +77,18 @@ class LotRepository:
             raise NotFound("lot", str(reference))
         return lot
 
+    def booked_in_on(self, reference: LotReference | str) -> date | None:
+        """The day a lot was booked in, which the lot itself does not carry.
+
+        It is a fact about the station rather than about the seed, so it lives
+        on the row rather than on the object, and everything that needs it
+        asks here.
+        """
+        row = self._connection.execute(
+            "select booked_in_at from lot where reference = ?", (str(reference),)
+        ).fetchone()
+        return None if row is None else to_date(row["booked_in_at"][:10])
+
     def open_lots(self) -> tuple[SeedLot, ...]:
         """Everything not yet closed, oldest first, which is the work queue."""
         rows = self._connection.execute(

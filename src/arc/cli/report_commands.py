@@ -21,6 +21,7 @@ from arc.reporting.registers import (
     store_register,
     work_in_progress,
 )
+from arc.reporting.statistics import by_month, by_species, turnaround
 
 __all__ = ["report"]
 
@@ -201,3 +202,37 @@ def store_report(context: Context, out: Path | None) -> None:
 
     out.write_text(csv_text, encoding="utf-8")
     context.say(f"written to {out}")
+
+
+@report.command("year")
+@click.option("--from", "start", type=click.DateTime(formats=["%Y-%m-%d"]), required=True)
+@click.option("--to", "end", type=click.DateTime(formats=["%Y-%m-%d"]), required=True)
+@click.pass_obj
+def year(context: Context, start: datetime, end: datetime) -> None:
+    """What the station did over a stretch of months."""
+    station = context.station()
+    first, last = start.date(), end.date()
+
+    months = by_month(station.certificates, start=first, end=last)
+    issued = sum(month.issued for month in months)
+
+    click.echo(f"{issued} certificates issued between {first} and {last}")
+    click.echo("")
+
+    for month in months:
+        taken_back = f"  ({month.withdrawn} withdrawn)" if month.withdrawn else ""
+        click.echo(f"  {month.label}  {month.issued:>4}{taken_back}")
+
+    click.echo("")
+    for summary in by_species(station.certificates, start=first, end=last):
+        germination = (
+            f"mean germination {summary.mean_germination}"
+            if summary.had_germinations
+            else "no germinations"
+        )
+        click.echo(f"  {summary.species_name:<28}{summary.certificates:>4}   {germination}")
+
+    took = turnaround(station.lots, station.certificates, start=first, end=last)
+    if took is not None:
+        click.echo("")
+        click.echo(f"  {took.describe()}")
