@@ -39,23 +39,42 @@ class Context:
         self.synchronous = synchronous
         #: Whoever is at the keyboard. Goes in the day book beside what they did.
         self.operator = operator
+        self._station: Station | None = None
         #: The day the work is being recorded against. Normally today, but the
         #: bench sheets are sometimes typed up the next morning and the dates
         #: on them have to be the dates the work was actually done.
         self.today = today
 
     def station(self) -> Station:
-        """Opens the database this command was pointed at.
+        """The database this command was pointed at, opened once.
 
         Every command went through open_station itself before this existed,
         which meant the journal mode had to be threaded through twenty three
         call sites or forgotten at one of them.
+
+        Opened once and kept, rather than opened per call. Several commands
+        ask twice, and two connections to the same SQLite file will block each
+        other the moment one of them is inside a transaction, which is the
+        kind of fault that only appears when the machine is busy.
         """
-        return open_station(
-            self.database,
-            journal_mode=self.journal_mode,
-            synchronous=self.synchronous,
-        )
+        if self._station is None:
+            self._station = open_station(
+                self.database,
+                journal_mode=self.journal_mode,
+                synchronous=self.synchronous,
+            )
+        return self._station
+
+    def close(self) -> None:
+        """Closes the database if this command opened it.
+
+        Called when the command finishes, whether it finished or raised. A
+        connection left open holds the write ahead log open with it, and a
+        station whose console is left running all day accumulates them.
+        """
+        if self._station is not None:
+            self._station.close()
+            self._station = None
 
     def now(self) -> datetime:
         """The moment to stamp a day book entry with.

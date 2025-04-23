@@ -23,7 +23,7 @@ TODAY = "2024-10-02"
 def run(runner, tmp_path):
     """Runs a command against a database of its own and returns the result."""
 
-    def invoke(*args: str):
+    def invoke(*args: str, catch_exceptions: bool = False):
         return runner.invoke(
             cli,
             [
@@ -39,7 +39,7 @@ def run(runner, tmp_path):
                 "off",
                 *args,
             ],
-            catch_exceptions=False,
+            catch_exceptions=catch_exceptions,
         )
 
     return invoke

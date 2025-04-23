@@ -86,7 +86,7 @@ def cli(
     today: datetime | None,
 ) -> None:
     """Analysis, reporting and certification for the seed testing station."""
-    ctx.obj = Context(
+    context = Context(
         database=database,
         quiet=quiet,
         today=today.date() if today is not None else date.today(),
@@ -94,6 +94,9 @@ def cli(
         synchronous=sync,
         operator=operator or _who(),
     )
+    ctx.obj = context
+    # Whatever the command does, the database is closed on the way out.
+    ctx.call_on_close(context.close)
 
 
 cli.add_command(species)
