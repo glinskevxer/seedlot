@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from arc.errors import NotFound
+from arc.species import register
 
 
 class TestListing:
@@ -14,7 +15,9 @@ class TestListing:
         assert result.exit_code == 0
         assert "Triticum aestivum" in result.output
         assert "Lolium perenne" in result.output
-        assert result.output.count("\n") == 26
+        # One line per species, derived rather than typed, because the number
+        # changes whenever the station takes on another one.
+        assert result.output.count("\n") == len(register)
 
     def test_it_puts_the_common_name_next_to_the_botanical_one(self, run) -> None:
         result = run("species", "list")

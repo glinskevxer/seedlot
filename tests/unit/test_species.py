@@ -208,3 +208,101 @@ class TestMethods:
         assert Substrate.BETWEEN_PAPER.code == "BP"
         assert Substrate.PLEATED_PAPER.code == "PP"
         assert Substrate.SAND.code == "S"
+
+
+class TestTheSpeciesTakenOnLater:
+    """The ten added when the station widened what it would accept.
+
+    Each of these has something about it that the first twenty six did not
+    cover, which is why they are worth testing individually rather than by a
+    count.
+    """
+
+    def test_triticale_is_a_cereal_with_no_common_name_to_speak_of(self) -> None:
+        found = register.require("triticale")
+
+        assert found.botanical_name == "Triticosecale"
+        assert found.seed_class is SeedClass.CEREAL
+
+    def test_millet_takes_a_much_smaller_sample_than_the_other_cereals(self) -> None:
+        millet = register.require("common millet")
+        wheat = register.require("wheat")
+
+        assert millet.submitted_sample_g < wheat.submitted_sample_g
+        assert millet.seed_class is wheat.seed_class
+
+    def test_white_lupin_takes_a_working_sample_of_nearly_half_a_kilo(self) -> None:
+        # Large seed means a working sample large enough to hold enough seeds
+        # for the count to mean anything.
+        found = register.require("white lupin")
+
+        assert found.purity_working_sample_g == Decimal("450")
+
+    def test_and_it_goes_in_the_low_oven_because_it_is_oily(self) -> None:
+        assert register.require("white lupin").moisture.oven is OvenMethod.LOW_CONSTANT
+
+    def test_chickpea_takes_half_the_submitted_sample_as_its_working_one(self) -> None:
+        found = register.require("chickpea")
+
+        assert found.purity_working_sample_g == found.submitted_sample_g / 2
+
+    def test_common_vetch_answers_to_what_the_paperwork_calls_it(self) -> None:
+        assert register.require("tare") is register.require("Vicia sativa")
+
+    def test_turnip_rape_is_a_brassica_and_goes_in_the_low_oven(self) -> None:
+        found = register.require("turnip rape")
+
+        assert found.seed_class is SeedClass.BRASSICA
+        assert found.moisture.oven is OvenMethod.LOW_CONSTANT
+
+    def test_radish_is_a_brassica_that_does_not(self) -> None:
+        # Not oily, so the hot oven is fine and much quicker.
+        assert register.require("radish").moisture.oven is not OvenMethod.LOW_CONSTANT
+
+    def test_cocksfoot_is_chaffy_and_prechilled(self) -> None:
+        found = register.require("cocksfoot")
+
+        assert found.chaffy is True
+        assert found.germination.needs_prechill is True
+
+    def test_and_takes_three_weeks_from_setting_down(self) -> None:
+        found = register.require("cocksfoot")
+
+        assert found.germination.final_count_day == 21
+        assert found.germination.duration_days == 26
+
+    def test_timothy_takes_the_smallest_working_sample_of_the_lot(self) -> None:
+        smallest = min(entry.purity_working_sample_g for entry in register)
+
+        assert register.require("timothy").purity_working_sample_g == smallest
+
+    def test_meadow_fescue_sits_between_the_other_two_fescues(self) -> None:
+        meadow = register.require("meadow fescue")
+        red = register.require("Festuca rubra")
+
+        assert meadow.seed_class is red.seed_class
+        assert meadow.chaffy is True
+
+    def test_every_new_one_obeys_the_rule_the_old_ones_do(self) -> None:
+        # The working sample cannot be larger than the sample it comes out of,
+        # which the dataclass enforces, so this is really a check that all ten
+        # were transcribed rather than guessed.
+        for name in (
+            "triticale",
+            "common millet",
+            "white lupin",
+            "common vetch",
+            "chickpea",
+            "turnip rape",
+            "radish",
+            "cocksfoot",
+            "timothy",
+            "meadow fescue",
+        ):
+            found = register.require(name)
+
+            assert found.purity_working_sample_g <= found.submitted_sample_g
+            assert found.max_lot_kg > 0
+
+    def test_the_station_now_takes_thirty_six(self) -> None:
+        assert len(register) == 36
