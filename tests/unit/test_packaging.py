@@ -83,6 +83,27 @@ class TestTheToolsAgreeWithEachOther:
         assert for_tests[0]["disallow_untyped_defs"] is False
 
 
+class TestTheReadme:
+    def test_the_file_the_metadata_names_is_there(self, config: dict[str, Any]) -> None:
+        # Without this the package cannot be built at all: hatchling reads the
+        # readme to put it in the metadata and fails when it is missing, which
+        # takes out every install and every wheel.
+        named = config["project"]["readme"]
+
+        assert (PROJECT.parent / named).exists()
+
+    def test_and_has_something_in_it(self, config: dict[str, Any]) -> None:
+        named = config["project"]["readme"]
+        text = (PROJECT.parent / named).read_text(encoding="utf-8")
+
+        assert len(text.splitlines()) > 20
+
+    def test_it_names_the_command(self, config: dict[str, Any]) -> None:
+        text = (PROJECT.parent / config["project"]["readme"]).read_text(encoding="utf-8")
+
+        assert "arc lot book-in" in text
+
+
 class TestTheTypeMarker:
     def test_it_is_there(self) -> None:
         assert (Path(arc.__file__).parent / "py.typed").exists()

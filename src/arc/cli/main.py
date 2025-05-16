@@ -173,6 +173,44 @@ def doctor(context: Context) -> None:
 
 
 @cli.command()
+@pass_context
+def guide(context: Context) -> None:
+    """A job from start to finish, for whoever is new this week."""
+    for line in (
+        "A lot, start to finish:",
+        "",
+        "  arc lot book-in L-2025-0041 --species wheat --weight 24000 \\",
+        "      --containers bag --container-count 480 \\",
+        '      --merchant "Ravenscar Grain" --sealed-on 2025-03-04 --origin GB',
+        "",
+        "  arc purity record L-2025-0041 --working 120.0 --pure 118.2 \\",
+        '      --other 0.9 --inert 0.9 --analyst "J. Whitfield"',
+        "",
+        "  arc germination record L-2025-0041 --tray 96,4,0,0,0 --tray 95,5,0,0,0 \\",
+        "      --tray 97,3,0,0,0 --tray 96,4,0,0,0 \\",
+        '      --set-down 2025-03-12 --final-count 2025-03-20 --analyst "J. Whitfield"',
+        "",
+        '  arc certificate issue L-2025-0041 --signed-by "A. Pearce"',
+        "  arc certificate print GB-0214/2025/00001",
+        "",
+        "Then the sample goes in the store and is held against the certificate.",
+        "  arc store show L-2025-0041      what is left, and until when",
+        "  arc store due                   what has come out of its period",
+        "",
+        "Two commands about the station rather than about seed:",
+        "  arc doctor                      what ought not to be true",
+        "  arc backup                      a checked copy of the database",
+        "",
+        "Nothing here guesses. A command that will not accept what it was given",
+        "says why and writes nothing.",
+    ):
+        click.echo(line)
+
+    context.say("")
+    context.say("Every command takes -h.")
+
+
+@cli.command()
 @click.option("--subject", default=None, help="Only entries about one thing.")
 @click.option("--operator", "who", default=None, help="Only one person's entries.")
 @click.option("--limit", type=int, default=20, show_default=True)

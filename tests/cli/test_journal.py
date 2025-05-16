@@ -239,3 +239,26 @@ class TestWhoIsAtTheKeyboard:
         result = run("--operator", "apearce", "station")
 
         assert "operator apearce" in result.output
+
+
+class TestTheGuide:
+    def test_it_prints_a_whole_job(self, run) -> None:
+        result = run("guide")
+
+        assert result.exit_code == 0
+        assert "arc lot book-in" in result.output
+        assert "arc certificate issue" in result.output
+
+    def test_it_mentions_the_store(self, run) -> None:
+        assert "arc store due" in run("guide").output
+
+    def test_and_the_two_commands_about_the_station_itself(self, run) -> None:
+        result = run("guide")
+
+        assert "arc doctor" in result.output
+        assert "arc backup" in result.output
+
+    def test_it_touches_nothing(self, run) -> None:
+        run("guide")
+
+        assert "nothing in the day book" in run("journal").output
