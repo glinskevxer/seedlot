@@ -22,6 +22,8 @@ from arc.reporting.registers import (
     work_in_progress,
 )
 from arc.reporting.statistics import by_month, by_species, turnaround
+from arc.species import register
+from arc.workflow.schedule import expected_finish, overdue_on
 
 __all__ = ["report"]
 
@@ -236,3 +238,37 @@ def year(context: Context, start: datetime, end: datetime) -> None:
     if took is not None:
         click.echo("")
         click.echo(f"  {took.describe()}")
+
+
+@report.command("due")
+@click.option(
+    "--late",
+    is_flag=True,
+    help="Only the ones that should already have been finished.",
+)
+@click.pass_obj
+def due(context: Context, late: bool) -> None:
+    """When the open lots should be finished."""
+    station = context.station()
+
+    expected = tuple(
+        expected_finish(
+            lot,
+            register.require(lot.species_name),
+            station.germination.for_lot(str(lot.reference)),
+            on=context.today,
+        )
+        for lot in station.lots.open_lots()
+    )
+
+    if late:
+        expected = overdue_on(expected, context.today)
+        if not expected:
+            click.echo("nothing is late")
+            return
+    elif not expected:
+        click.echo("nothing is open")
+        return
+
+    for item in sorted(expected, key=lambda entry: entry.finish_on):
+        click.echo(item.describe(context.today))
