@@ -33,6 +33,25 @@ def report() -> None:
     """The registers the station has to be able to produce."""
 
 
+def _deliver(context: Context, sheet: str, out: Path | None, what: str) -> None:
+    """Sends a register to the terminal or to a file.
+
+    Written once because it was written three times and two of them left out
+    the newline argument. Without it Python translates the line endings on the
+    way out, and the csv module has already put the ones the format wants in,
+    so on Windows every row would end with two carriage returns.
+    """
+    if out is None:
+        click.echo(sheet, nl=False)
+        return
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(sheet, encoding="utf-8", newline="")
+
+    rows = max(0, sheet.count("\r\n") - 1)
+    context.say(f"wrote {rows} {what} to {out}")
+
+
 @report.command("work")
 @click.pass_obj
 def work(context: Context) -> None:
@@ -113,14 +132,7 @@ def certificates(context: Context, start: datetime, end: datetime, out: Path | N
 
     sheet = certificate_register(station.certificates, start=first, end=last)
 
-    if out is None:
-        click.echo(sheet, nl=False)
-        return
-
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(sheet, encoding="utf-8", newline="")
-    rows = max(0, sheet.count("\r\n") - 1)
-    context.say(f"wrote {rows} certificates to {out}")
+    _deliver(context, sheet, out, "certificates")
 
 
 @report.command("expiring")
@@ -175,14 +187,12 @@ def expiring(context: Context, within: int) -> None:
 def searches(context: Context, out: Path | None) -> None:
     """Every search for other species, as a spreadsheet."""
     station = context.station()
-    csv_text = other_seed_register(station.lots, station.other_seed)
-
-    if out is None:
-        click.echo(csv_text)
-        return
-
-    out.write_text(csv_text, encoding="utf-8")
-    context.say(f"written to {out}")
+    _deliver(
+        context,
+        other_seed_register(station.lots, station.other_seed),
+        out,
+        "searches",
+    )
 
 
 @report.command("store")
@@ -196,14 +206,12 @@ def searches(context: Context, out: Path | None) -> None:
 def store_report(context: Context, out: Path | None) -> None:
     """What the sample store is holding, closest to its date first."""
     station = context.station()
-    csv_text = store_register(station.retention, on=context.today)
-
-    if out is None:
-        click.echo(csv_text)
-        return
-
-    out.write_text(csv_text, encoding="utf-8")
-    context.say(f"written to {out}")
+    _deliver(
+        context,
+        store_register(station.retention, on=context.today),
+        out,
+        "samples",
+    )
 
 
 @report.command("year")
@@ -256,6 +264,7 @@ def due(context: Context, late: bool) -> None:
             lot,
             register.require(lot.species_name),
             station.germination.for_lot(str(lot.reference)),
+            booked_in_on=station.lots.booked_in_on(lot.reference) or context.today,
             on=context.today,
         )
         for lot in station.lots.open_lots()

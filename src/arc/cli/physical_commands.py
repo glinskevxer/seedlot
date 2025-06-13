@@ -22,6 +22,7 @@ from arc.species import register
 from arc.storage.physical import MoistureStage
 from arc.weight.thousand_seed import check as check_seed_weight
 from arc.weight.thousand_seed import measure
+from arc.workflow.progress import begin_testing
 
 __all__ = ["moisture", "seedweight"]
 
@@ -92,6 +93,7 @@ def record_moisture(
         combined_percent=combined,
     )
 
+    begin_testing(lot, station.lots, on=context.today)
     context.record(station, "recorded a moisture for", reference, f"{result.percent} per cent")
 
     context.say(f"recorded against {reference}")

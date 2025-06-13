@@ -16,6 +16,7 @@ from arc.otherseed.model import Finding, OtherSeedSearch, SearchKind
 from arc.otherseed.rules import check_search, required_weight_g
 from arc.otherseed.tolerance import compare
 from arc.species import register
+from arc.workflow.progress import begin_testing
 
 __all__ = ["otherseed"]
 
@@ -112,6 +113,7 @@ def record(
 
     station.other_seed.record(reference, search, searched_on=context.today)
 
+    begin_testing(lot, station.lots, on=context.today)
     context.record(station, "searched for other seed in", reference, search.describe())
 
     context.say(f"recorded against {reference}")

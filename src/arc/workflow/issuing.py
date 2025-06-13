@@ -29,7 +29,6 @@ from arc.certificates.model import (
 from arc.errors import Rule, RuleBroken
 from arc.germination.dormancy import check_treatment
 from arc.germination.outcome import decide
-from arc.lots.model import LotStatus
 from arc.purity.tolerance import compare
 from arc.quantities import Percentage
 from arc.species import register
@@ -39,6 +38,7 @@ from arc.storage.lots import LotRepository
 from arc.storage.otherseed import OtherSeedRepository, StoredSearch
 from arc.storage.physical import MoistureRepository, SeedWeightRepository
 from arc.storage.retention import RetentionRepository
+from arc.workflow.progress import mark_reported
 from arc.workflow.retaining import retain
 
 __all__ = ["gather", "issue"]
@@ -251,9 +251,7 @@ def issue(
     if retention is not None:
         retain(certificate, register.require(lot.species_name), retention, on=on)
 
-    if lot.status is LotStatus.IN_TEST:
-        lot.move_to(LotStatus.REPORTED)
-        lots.save(lot, booked_in_on=on)
+    mark_reported(lot, lots, on=on)
 
     return certificate
 

@@ -9,6 +9,7 @@ from arc.cli.station import weight_option
 from arc.purity.analysis import analyse, check_analysis
 from arc.purity.tolerance import compare
 from arc.species import register
+from arc.workflow.progress import begin_testing
 
 __all__ = ["purity"]
 
@@ -68,6 +69,7 @@ def record(
         reference, analysis, result, analysed_on=context.today, is_duplicate=duplicate
     )
 
+    begin_testing(lot, station.lots, on=context.today)
     context.record(station, "recorded a purity for", reference, f"by {analyst}")
     context.say(f"recorded against {reference}")
     click.echo(f"pure seed    {result.pure_seed}")

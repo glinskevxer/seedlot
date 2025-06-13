@@ -6,10 +6,10 @@ is the only determination that takes weeks rather than an afternoon. Cocksfoot
 prechilled for five days and counted on day twenty one is a month; wheat is
 eight days.
 
-The prediction is deliberately pessimistic in one direction. Where the station
-does not know when a test was set down, it assumes the test starts today rather
-than that it started when the lot arrived, because telling a merchant a date
-that has already passed is worse than telling them a later one.
+Where no germination has been set down yet, the clock runs from the day the lot
+was booked in rather than from today. That is what the merchant is counting
+from, and it is the only version of this that can ever say a job is late: a
+clock that restarts every morning is a clock that is never behind.
 """
 
 from __future__ import annotations
@@ -55,13 +55,15 @@ def expected_finish(
     species: Species,
     tests: tuple[GerminationTest, ...],
     *,
+    booked_in_on: date,
     on: date,
 ) -> Expected:
     """When this lot's work should be finished.
 
     The rules stack rather than branch. A lot that is already reported is
     finished today whatever else is true; a germination that has been set down
-    decides the date; and with nothing set down the clock starts now.
+    decides the date; and with nothing set down the clock runs from the day the
+    lot came in.
     """
     reference = str(lot.reference)
 
@@ -80,8 +82,8 @@ def expected_finish(
         germination_finishes = latest.set_down_on + timedelta(days=duration)
         reason = f"germination set down {latest.set_down_on}, {duration} days"
     else:
-        germination_finishes = on + timedelta(days=duration)
-        reason = f"germination not set down yet, {duration} days once it is"
+        germination_finishes = booked_in_on + timedelta(days=duration)
+        reason = f"germination not set down yet, {duration} days from booking in"
 
     return Expected(
         lot_reference=reference,

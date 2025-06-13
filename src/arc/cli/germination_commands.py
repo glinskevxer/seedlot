@@ -19,6 +19,7 @@ from arc.germination.model import GerminationTest, Replicate, Treatment, check_t
 from arc.germination.outcome import decide
 from arc.germination.tolerance import check_range
 from arc.species import register
+from arc.workflow.progress import begin_testing
 
 __all__ = ["germination"]
 
@@ -107,6 +108,7 @@ def record(
 
     station.germination.record(test)
 
+    begin_testing(lot, station.lots, on=context.today)
     context.record(
         station,
         "recorded a germination for",
