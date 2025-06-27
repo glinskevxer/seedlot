@@ -90,7 +90,18 @@ class LotRepository:
         return None if row is None else to_date(row["booked_in_at"][:10])
 
     def open_lots(self) -> tuple[SeedLot, ...]:
-        """Everything not yet closed, oldest first, which is the work queue."""
+        """Everything still to finish, oldest first, which is the work queue.
+
+        The query asks for everything not closed and the filter takes it from
+        there, rather than naming the finished statuses in SQL. There is one
+        definition of open, it is on the status itself, and having the query
+        carry a second copy of it is how the two came to disagree: a certified
+        lot stayed on the Monday morning list because the SQL only knew about
+        closed.
+
+        The partial index is on "not closed" for the same reason, so the query
+        still uses it and the filter only sees rows worth looking at.
+        """
         rows = self._connection.execute(
             """
             select * from lot
@@ -99,7 +110,22 @@ class LotRepository:
             """,
             (LotStatus.CLOSED.value,),
         ).fetchall()
-        return tuple(self._to_lot(row) for row in rows)
+        return tuple(lot for lot in map(self._to_lot, rows) if lot.status.is_open)
+
+    def for_merchant(self, merchant: str) -> tuple[SeedLot, ...]:
+        """Every lot of one merchant's, finished or not.
+
+        Not the same set as the work queue. A merchant asking what the station
+        has of theirs wants the certified ones most of all, because those are
+        the ones they can sell.
+        """
+        rows = self._connection.execute(
+            "select * from lot order by booked_in_at asc, reference asc"
+        ).fetchall()
+        wanted = merchant.strip().lower()
+        return tuple(
+            lot for lot in map(self._to_lot, rows) if lot.merchant.strip().lower() == wanted
+        )
 
     def for_species(self, species_name: str) -> tuple[SeedLot, ...]:
         rows = self._connection.execute(

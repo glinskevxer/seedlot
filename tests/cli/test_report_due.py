@@ -204,3 +204,69 @@ class TestWritingARegisterToAFile:
         booked("report", "store", "--out", str(target))
 
         assert target.exists()
+
+
+class TestTheWorkListShrinks:
+    def test_a_booked_lot_is_on_it(self, booked) -> None:
+        assert "L-2024-0041" in booked("report", "work").output
+
+    def test_recording_a_purity_puts_it_in_test(self, booked) -> None:
+        booked(
+            "purity",
+            "record",
+            "L-2024-0041",
+            "--working",
+            "120.0",
+            "--pure",
+            "118.2",
+            "--other",
+            "0.9",
+            "--inert",
+            "0.9",
+            "--analyst",
+            "J. Whitfield",
+        )
+
+        assert "in test" in booked("lot", "show", "L-2024-0041").output
+
+    def test_and_certifying_it_takes_it_off_the_list(self, booked) -> None:
+        booked(
+            "purity",
+            "record",
+            "L-2024-0041",
+            "--working",
+            "120.0",
+            "--pure",
+            "118.2",
+            "--other",
+            "0.9",
+            "--inert",
+            "0.9",
+            "--analyst",
+            "J. Whitfield",
+        )
+        booked(
+            "germination",
+            "record",
+            "L-2024-0041",
+            "--tray",
+            "96,4,0,0,0",
+            "--tray",
+            "95,5,0,0,0",
+            "--tray",
+            "97,3,0,0,0",
+            "--tray",
+            "96,4,0,0,0",
+            "--set-down",
+            "2024-09-20",
+            "--final-count",
+            "2024-09-28",
+            "--analyst",
+            "J. Whitfield",
+        )
+        booked("certificate", "issue", "L-2024-0041", "--signed-by", "A. Pearce")
+
+        listed = booked("report", "work")
+
+        assert "L-2024-0041" not in listed.output
+        assert "reported" in booked("lot", "show", "L-2024-0041").output

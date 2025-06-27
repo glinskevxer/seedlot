@@ -229,12 +229,6 @@ def merchant_register(
     Matched on the name as it was written at booking in, because that is what
     the merchant put on their own paperwork and what they will quote back.
     """
-    wanted = merchant.strip().lower()
-    found: list[tuple[SeedLot, tuple[Certificate, ...]]] = []
-
-    for lot in lots.open_lots():
-        if lot.merchant.strip().lower() != wanted:
-            continue
-        found.append((lot, certificates.for_lot(str(lot.reference))))
-
-    return tuple(found)
+    return tuple(
+        (lot, certificates.for_lot(str(lot.reference))) for lot in lots.for_merchant(merchant)
+    )

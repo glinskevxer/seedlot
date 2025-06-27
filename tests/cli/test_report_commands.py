@@ -80,17 +80,29 @@ class TestTheMondayList:
     def test_an_empty_station_says_so(self, run) -> None:
         assert "nothing open" in run("report", "work").output
 
-    def test_it_lists_what_is_open(self, worked) -> None:
+    def test_it_lists_what_is_still_to_finish(self, worked) -> None:
         output = worked("report", "work").output
 
-        assert "L-2024-0041" in output
         assert "L-2024-0077" in output
+
+    def test_and_leaves_off_the_one_that_has_been_certified(self, worked) -> None:
+        # The list is what is left to do. A lot with its certificate issued
+        # is done, and it used to sit here for ever because nothing moved it.
+        output = worked("report", "work").output
+
+        assert "L-2024-0041" not in output
 
     def test_it_says_what_has_been_issued(self, worked) -> None:
         output = worked("report", "work").output
 
-        assert "1 issued" in output
         assert "none issued" in output
+
+    def test_the_certified_lot_is_still_on_its_merchant_register(self, worked) -> None:
+        # Off the work list is not off the books. The merchant asking what the
+        # station has of theirs wants the certified one most of all.
+        output = worked("report", "merchant", "Ravenscar Grain").output
+
+        assert "L-2024-0041" in output
 
     def test_quiet_leaves_the_legend_off(self, worked) -> None:
         loud = worked("report", "work").output
