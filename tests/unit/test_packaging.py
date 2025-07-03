@@ -125,3 +125,25 @@ class TestTheEntryPoint:
         module = __import__(module_name, fromlist=[function_name])
 
         assert callable(getattr(module, function_name))
+
+
+class TestReadingAnEnumBack:
+    def test_a_value_that_was_never_a_member(self) -> None:
+        # Stored by value rather than by name, so a member renamed in the code
+        # has to fail here rather than read as something else.
+        from arc.retention.model import DisposalReason
+        from arc.storage.codec import to_enum
+
+        with pytest.raises(ValueError, match="is not a DisposalReason"):
+            to_enum(DisposalReason, "thrown in the bin")
+
+    def test_a_value_that_is_one(self) -> None:
+        from arc.retention.model import DisposalReason
+        from arc.storage.codec import to_enum
+
+        assert to_enum(DisposalReason, "spoiled in store") is DisposalReason.SPOILED
+
+    def test_every_determination_has_a_label(self) -> None:
+        from arc.retention.model import Determination
+
+        assert all(item.label == item.value for item in Determination)
