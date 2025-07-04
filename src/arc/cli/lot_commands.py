@@ -14,6 +14,7 @@ from arc.errors import RuleBroken
 from arc.importing.merchant_csv import parse
 from arc.lots.model import ContainerKind, LotReference, SeedLot
 from arc.workflow.booking import book_in, split_advice
+from arc.workflow.splitting import split
 
 __all__ = ["lot"]
 
@@ -194,3 +195,78 @@ def import_lots(context: Context, path: Path, merchant: str, dry_run: bool) -> N
 
     if refused or read.problems:
         raise SystemExit(1)
+
+
+@lot.command("split")
+@click.argument("reference")
+@click.option("--species", required=True, help="Botanical or common name.")
+@click.option("--weight", "weight_kg", required=True, help="The whole consignment, kg.")
+@click.option(
+    "--containers",
+    type=click.Choice([kind.value for kind in ContainerKind]),
+    default=ContainerKind.BAG.value,
+    show_default=True,
+)
+@click.option("--container-count", type=int, default=0, help="Zero for bulk.")
+@click.option("--merchant", required=True)
+@click.option("--sealed-on", type=click.DateTime(formats=["%Y-%m-%d"]), required=True)
+@click.option("--origin", required=True, help="Two letter country code.")
+@click.option(
+    "--sublots-from",
+    type=int,
+    required=True,
+    help="The serial the first sublot takes. They run on from there.",
+)
+@click.pass_obj
+def split_lot(
+    context: Context,
+    reference: str,
+    species: str,
+    weight_kg: str,
+    containers: str,
+    container_count: int,
+    merchant: str,
+    sealed_on: datetime,
+    origin: str,
+    sublots_from: int,
+) -> None:
+    """Split a consignment too heavy to be one lot and book the sublots in.
+
+    The consignment itself is recorded closed. It is not something anybody can
+    test, and without it the shelf holds three references with nothing saying
+    they came off the same lorry.
+    """
+    consignment = SeedLot(
+        reference=LotReference.parse(reference),
+        species_name=species,
+        declared_weight_kg=_weight(weight_kg),
+        container_kind=ContainerKind(containers),
+        container_count=container_count,
+        merchant=merchant,
+        sealed_on=sealed_on.date(),
+        origin_country=origin.upper(),
+    )
+
+    station = context.station()
+    try:
+        done = split(
+            consignment,
+            station.lots,
+            starting_serial=sublots_from,
+            on=context.today,
+        )
+    except RuleBroken as refused:
+        for rule in refused.rules:
+            click.echo(f"refused: {rule.detail}", err=True)
+        raise SystemExit(2) from refused
+
+    context.record(
+        station,
+        "split",
+        str(consignment.reference),
+        f"into {done.count} sublots",
+    )
+
+    context.say(done.describe())
+    for sublot in done.sublots:
+        click.echo(f"{sublot.reference}  {sublot.declared_weight_kg} kg")
