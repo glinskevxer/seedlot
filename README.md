@@ -65,6 +65,21 @@ is refused exits non zero and writes nothing.
 - A lot already booked in cannot be booked in again, so a merchant re-sending
   last week's list does not reset seed that is halfway through testing.
 
+## A consignment too heavy to be one lot
+
+The maximum lot weight is not administrative. Above it a sample stops being
+representative of the whole, so a certificate on forty tonnes of wheat would be
+a claim the sampling cannot support.
+
+```
+arc lot split L-2025-0050 --species wheat --weight 40000 \
+    --containers bag --container-count 800 --merchant "Ravenscar Grain" \
+    --sealed-on 2025-03-04 --origin GB --sublots-from 51
+```
+
+The consignment is recorded closed and each sublot is a lot in its own right
+from then on, sampled, tested and certified separately.
+
 ## Where things are
 
 | what | where |
