@@ -105,6 +105,9 @@ jobs:
       - name: Check the numbering
         run: python -m arc.tools.check_migrations
 
+      - name: Check the tree could be released
+        run: python -m arc.tools.release
+
       - name: Apply them, then apply them again
         run: |
           python - <<'PY'

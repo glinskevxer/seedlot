@@ -9,7 +9,7 @@ two years later.
 
 __all__ = ["__version__", "STATION_CODE", "STATION_NAME"]
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 #: The accreditation code printed on every certificate the station issues.
 STATION_CODE = "GB-0214"
