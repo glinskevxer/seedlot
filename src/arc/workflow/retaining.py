@@ -27,15 +27,19 @@ from arc.storage.retention import RetentionRepository
 
 __all__ = ["consumed_by", "retain"]
 
-#: Which determination on a certificate accounts for which draw. Moisture and
-#: thousand seed weight are named on the certificate as figures; the other
-#: three are named as the work that produced them.
+#: Which determination on a certificate accounts for which draw.
+#:
+#: The search for other species is deliberately not here. Its working sample is
+#: ten times the purity one, which for wheat is 1200 g against a submitted
+#: sample of 1000 g, so it cannot have come out of the same bag and does not:
+#: a customer ordering the search sends a separate, larger sample for it.
+#: Deducting it from the standard sample made the jar read as empty after
+#: every search, which is how this was noticed.
 _BY_NAME: dict[str, Determination] = {
     "purity": Determination.PURITY,
     "germination": Determination.GERMINATION,
     "moisture": Determination.MOISTURE,
     "thousand seed weight": Determination.THOUSAND_SEED_WEIGHT,
-    "other seed by number": Determination.OTHER_SEED,
 }
 
 

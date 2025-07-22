@@ -63,18 +63,39 @@ def work(context: Context) -> None:
         click.echo("nothing open")
         return
 
+    late = 0
     for item in items:
         lot = item.lot
         marker = "*" if item.is_waiting_on_the_bench else " "
         issued = (
             f"{item.certificates_issued} issued" if item.certificates_issued else "none issued"
         )
+
+        # The date is on the Monday list rather than only on report due,
+        # because the question the list is read to answer is what to do next,
+        # and that is decided by what is closest to being late.
+        expected = expected_finish(
+            lot,
+            register.require(lot.species_name),
+            station.germination.for_lot(str(lot.reference)),
+            booked_in_on=station.lots.booked_in_on(lot.reference) or context.today,
+            on=context.today,
+        )
+        if expected.is_overdue_on(context.today):
+            late += 1
+            due = f"LATE since {expected.finish_on}"
+        else:
+            due = f"due {expected.finish_on}"
+
         click.echo(
-            f"{marker} {lot.reference}  {lot.species_name:<22} {lot.status.value:<10} {issued}"
+            f"{marker} {lot.reference}  {lot.species_name:<22} "
+            f"{lot.status.value:<10} {issued:<12} {due}"
         )
 
     context.say("")
     context.say("* on the bench now")
+    if late:
+        context.say(f"{late} past the date it should have been finished")
 
 
 @report.command("merchant")

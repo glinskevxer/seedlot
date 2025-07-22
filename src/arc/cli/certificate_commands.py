@@ -42,6 +42,7 @@ def check(context: Context, reference: str) -> None:
         germination=station.germination,
         moisture=station.moisture,
         seed_weight=station.seed_weight,
+        other_seed=station.other_seed,
     )
 
     done = gathered.results.determinations()
@@ -91,6 +92,7 @@ def issue_command(context: Context, reference: str, kind: str, signed_by: str) -
             retention=station.retention,
             moisture=station.moisture,
             seed_weight=station.seed_weight,
+            other_seed=station.other_seed,
         )
     except RuleBroken as refused:
         for rule in refused.rules:
